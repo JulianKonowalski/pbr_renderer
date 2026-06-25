@@ -1,0 +1,16 @@
+BasedOnStyle: LLVM
+AccessModifierOffset: "-2"
+IndentWidth: "4"
+TabWidth: "4"
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveMacros: Consecutive
+AlignTrailingComments: true
+IncludeBlocks: Regroup
+ColumnLimit: 80 
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeConceptDeclarations: Always
+RequiresClausePosition: OwnLine
+FixNamespaceComments: true
