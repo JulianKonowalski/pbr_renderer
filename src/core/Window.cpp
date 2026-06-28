@@ -28,11 +28,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 /*----------------------------------------------------------------------------*/
 
-static EventLoopBase event_loop;
+EventLoop event_loop;
 
 Window::Window(const WindowSpecification& window_specification)
     : m_glfw_window(nullptr), m_specification(window_specification),
-      EventDispatcher<EventLoopBase>(event_loop) {
+      EventDispatcher(event_loop) {
     if (!s_window_count) {
         glfwSetErrorCallback(error_callback);
         if (!glfwInit()) {
