@@ -3,7 +3,6 @@
 #include "Event.hpp"
 
 #include <array>
-#include <iostream>
 
 namespace pbr::core {
 
@@ -62,28 +61,28 @@ struct MouseDragEvent : public Event {
 /*----------------------------------------------------------------------------*/
 
 struct WindowResizeEvent : public Event {
-    explicit WindowResizeEvent(Window& window) : window(window) {}
+    explicit WindowResizeEvent(Window& window, int width, int height)
+        : window(window), width(width), height(height) {}
     Window& window;
+    const int width;
+    const int height;
 };
 
 /*----------------------------------------------------------------------------*/
 
-class Window final : public EventDispatcher<KeyEvent, MouseScrollEvent,
-                                            MouseButtonEvent, MouseMoveEvent,
-                                            MouseDragEvent, WindowResizeEvent> {
+class Window final : public EventDispatcher {
   public:
     struct WindowSpecification {
-        WindowSpecification(void) : title("OpenGL Window"), size({800, 600}) {}
+        WindowSpecification(void)
+            : title("OpenGL Window"), width(800), height(600) {}
 
-        WindowSpecification(const char* const title, int width, int height)
-            : title(title), size({width, height}) {}
-
-        WindowSpecification(const char* const title,
-                            const std::array<int, 2>& size)
-            : title(title), size(size) {}
+        WindowSpecification(const char* const title, int width = 800,
+                            int height = 600)
+            : title(title), width(width), height(height) {}
 
         const char* const title;
-        std::array<int, 2> size;
+        int width;
+        int height;
     };
 
     struct MouseState {
@@ -95,7 +94,8 @@ class Window final : public EventDispatcher<KeyEvent, MouseScrollEvent,
     static void unbind_all(void);
     static Window* get_current(void);
 
-    Window(const WindowSpecification& window_specification =
+    Window(EventLoop& event_loop,
+           const WindowSpecification& window_specification =
                WindowSpecification());
     ~Window(void);
 
@@ -114,29 +114,38 @@ class Window final : public EventDispatcher<KeyEvent, MouseScrollEvent,
 
     friend void pbr_core_window_on_key_click(Window& window, int key,
                                              int scancode, int action) {
-        window.dispatch_event<KeyEvent>(window, key, scancode, action);
+        KeyEvent event(window, key, scancode, action);
+        window.dispatch_event(event);
     }
 
     friend void pbr_core_window_on_scroll(Window& window, double x_offset,
                                           double y_offset) {
-        window.dispatch_event<MouseScrollEvent>(window, x_offset, y_offset);
+        MouseScrollEvent event(window, x_offset, y_offset);
+        window.dispatch_event(event);
     }
 
     friend void pbr_core_window_on_mouse_button(Window& window, int button,
                                                 int action, int mods) {
-        window.dispatch_event<MouseButtonEvent>(window, button, action, mods);
+        MouseButtonEvent event(window, button, action, mods);
+        window.dispatch_event(event);
     }
 
     friend void pbr_core_window_on_cursor_pos_change(Window& window,
                                                      double mouse_x_position,
                                                      double mouse_y_position) {
-        window.dispatch_event<MouseMoveEvent>(window);
+        window.m_mouse_state.mouse_x_position = mouse_x_position;
+        window.m_mouse_state.mouse_y_position = mouse_y_position;
+        MouseMoveEvent event(window);
+        window.dispatch_event(event);
     }
 
     friend void pbr_core_window_on_framebuffer_size_change(Window& window,
                                                            int width,
                                                            int height) {
-        window.dispatch_event<WindowResizeEvent>(window);
+        window.m_specification.width  = width;
+        window.m_specification.height = height;
+        WindowResizeEvent event(window, width, height);
+        window.dispatch_event(event);
     }
 
   private:

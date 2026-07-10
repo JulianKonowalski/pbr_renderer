@@ -1,16 +1,17 @@
 #pragma once
 
-#include <iostream>
-#include <type_traits>
+#include <vector>
 
 namespace pbr::core {
+
+class EventLoop;
 
 /*----------------------------------------------------------------------------*/
 
 struct Event {
   public:
     Event(void) : m_is_handled(false) {}
-    ~Event(void) = default;
+    virtual ~Event(void) = default;
 
     inline bool is_handled(void) const { return m_is_handled; }
     inline void set_handled(void) { m_is_handled = true; }
@@ -21,53 +22,25 @@ struct Event {
 
 /*----------------------------------------------------------------------------*/
 
-class EventLoop {
-
-    template <typename... Events>
-    friend class EventDispatcher;
-
-    template <typename EventHandlerType, typename... Events>
-    friend class EventHandler;
-
+class EventHandler {
   public:
-    EventLoop(void)  = default;
-    ~EventLoop(void) = default;
+    explicit EventHandler(EventLoop& event_loop);
+    ~EventHandler(void);
+    virtual void handle(Event& event) = 0;
 
-  protected:
-    template <typename EventType>
-    void dispatch_event(void) {
-        static_assert(std::is_base_of_v<Event, EventType>,
-                      "Attached event should be a child of pbr::core::Event");
-    }
-
-    template <typename EventType>
-    void attach_handler(void) {
-        static_assert(std::is_base_of_v<Event, EventType>,
-                      "Attached event should be a child of pbr::core::Event");
-        // todo
-    }
-
-    void detach_handler(void) {
-        // todo
-    }
+  private:
+    EventLoop& m_event_loop;
 };
 
 /*----------------------------------------------------------------------------*/
 
-template <typename... Events>
 class EventDispatcher {
   public:
     EventDispatcher(EventLoop& event_loop) : m_event_loop(event_loop) {}
     ~EventDispatcher(void) = default;
 
   protected:
-    template <typename EventType, typename... Args>
-    void dispatch_event(Args&&... args) {
-        static_assert(std::is_base_of_v<Event, EventType>,
-                      "Dispatched event must be a child of pbr::core::Event");
-        static_assert((std::is_same_v<EventType, Events> || ...),
-                      "Dispatched event must be one of the allowed events");
-    }
+    void dispatch_event(Event& event);
 
   private:
     EventLoop& m_event_loop;
@@ -75,24 +48,39 @@ class EventDispatcher {
 
 /*----------------------------------------------------------------------------*/
 
-template <typename EventHandlerType, typename... Events>
-class EventHandler {
+class EventLoop {
+
+    friend EventHandler;
+    friend EventDispatcher;
+
   public:
-    EventHandler(EventHandlerType& event_handler, EventLoop& event_loop)
-        : m_event_loop(event_loop) {
-        static_assert(
-            std::is_base_of_v<EventHandler<EventHandlerType, Events...>,
-                              EventHandlerType>,
-            "EventHandlerType should be a child of pbr::core::EventHandler");
-        // static_assert(is_call_, ); TODO: check if call is possible
-        (m_event_loop.attach_handler<Events>(), ...);
+    EventLoop(void)  = default;
+    ~EventLoop(void) = default;
+
+  protected:
+    void dispatch_event(Event& event) {
+        for (auto& handler : m_handlers) {
+            handler->handle(event);
+            if (event.is_handled()) {
+                break;
+            }
+        }
     }
-    ~EventHandler(void) {
-        // detach child methods
+
+    void attach_handler(EventHandler* event_handler) {
+        m_handlers.push_back(event_handler);
+    }
+
+    void detach_handler(EventHandler* event_handler) {
+        auto res =
+            std::find(m_handlers.begin(), m_handlers.end(), event_handler);
+        if (res != m_handlers.end()) {
+            m_handlers.erase(res);
+        }
     }
 
   private:
-    EventLoop& m_event_loop;
+    std::vector<EventHandler*> m_handlers;
 };
 
 /*----------------------------------------------------------------------------*/

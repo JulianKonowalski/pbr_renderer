@@ -28,9 +28,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 /*----------------------------------------------------------------------------*/
 
-EventLoop event_loop;
-
-Window::Window(const WindowSpecification& window_specification)
+Window::Window(EventLoop& event_loop,
+               const WindowSpecification& window_specification)
     : m_glfw_window(nullptr), m_specification(window_specification),
       EventDispatcher(event_loop) {
     if (!s_window_count) {
@@ -42,7 +41,7 @@ Window::Window(const WindowSpecification& window_specification)
     s_window_count += 1;
 
     m_glfw_window = glfwCreateWindow(
-        window_specification.size[0], window_specification.size[1],
+        window_specification.width, window_specification.height,
         window_specification.title, nullptr, nullptr);
     if (!m_glfw_window) {
         throw std::runtime_error("Failed to create a GLFW window");
