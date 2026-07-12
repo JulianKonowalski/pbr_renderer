@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Event.hpp"
+#include "core/Event.hpp"
+#include "core/EventEmitter.hpp"
 
-#include <array>
-
-namespace pbr::core {
+namespace vq::io {
 
 /*----------------------------------------------------------------------------*/
 
@@ -12,7 +11,7 @@ class Window;
 
 /*----------------------------------------------------------------------------*/
 
-struct KeyEvent : public Event {
+struct KeyEvent : public vq::core::Event {
     explicit KeyEvent(Window& window, int key, int scancode, int action)
         : window(window), key(key), scancode(scancode), action(action) {}
     Window& window;
@@ -21,9 +20,7 @@ struct KeyEvent : public Event {
     const int action;
 };
 
-/*----------------------------------------------------------------------------*/
-
-struct MouseScrollEvent : public Event {
+struct MouseScrollEvent : public vq::core::Event {
     explicit MouseScrollEvent(Window& window, double scroll_x_offset,
                               double scroll_y_offset)
         : window(window), scroll_x_offset(scroll_x_offset),
@@ -33,9 +30,7 @@ struct MouseScrollEvent : public Event {
     const double scroll_y_offset;
 };
 
-/*----------------------------------------------------------------------------*/
-
-struct MouseButtonEvent : public Event {
+struct MouseButtonEvent : public vq::core::Event {
     explicit MouseButtonEvent(Window& window, int button, int action, int mods)
         : window(window), button(button), action(action), mods(mods) {}
     Window& window;
@@ -44,23 +39,17 @@ struct MouseButtonEvent : public Event {
     const int mods;
 };
 
-/*----------------------------------------------------------------------------*/
-
-struct MouseMoveEvent : public Event {
+struct MouseMoveEvent : public vq::core::Event {
     explicit MouseMoveEvent(Window& window) : window(window) {}
     Window& window;
 };
 
-/*----------------------------------------------------------------------------*/
-
-struct MouseDragEvent : public Event {
+struct MouseDragEvent : public vq::core::Event {
     explicit MouseDragEvent(Window& window) : window(window) {}
     Window& window;
 };
 
-/*----------------------------------------------------------------------------*/
-
-struct WindowResizeEvent : public Event {
+struct WindowResizeEvent : public vq::core::Event {
     explicit WindowResizeEvent(Window& window, int width, int height)
         : window(window), width(width), height(height) {}
     Window& window;
@@ -70,7 +59,7 @@ struct WindowResizeEvent : public Event {
 
 /*----------------------------------------------------------------------------*/
 
-class Window final : public EventDispatcher {
+class Window final : public vq::core::EventEmitter {
   public:
     struct WindowSpecification {
         WindowSpecification(void)
@@ -94,9 +83,10 @@ class Window final : public EventDispatcher {
     static void unbind_all(void);
     static Window* get_current(void);
 
-    Window(EventLoop& event_loop,
-           const WindowSpecification& window_specification =
-               WindowSpecification());
+    explicit Window(const WindowSpecification& window_specification =
+                        WindowSpecification());
+    Window(Window& other)  = delete;
+    Window(Window&& other) = delete;
     ~Window(void);
 
     inline const WindowSpecification& get_specification(void) const {
@@ -115,19 +105,19 @@ class Window final : public EventDispatcher {
     friend void pbr_core_window_on_key_click(Window& window, int key,
                                              int scancode, int action) {
         KeyEvent event(window, key, scancode, action);
-        window.dispatch_event(event);
+        window.emit_event(event);
     }
 
     friend void pbr_core_window_on_scroll(Window& window, double x_offset,
                                           double y_offset) {
         MouseScrollEvent event(window, x_offset, y_offset);
-        window.dispatch_event(event);
+        window.emit_event(event);
     }
 
     friend void pbr_core_window_on_mouse_button(Window& window, int button,
                                                 int action, int mods) {
         MouseButtonEvent event(window, button, action, mods);
-        window.dispatch_event(event);
+        window.emit_event(event);
     }
 
     friend void pbr_core_window_on_cursor_pos_change(Window& window,
@@ -136,7 +126,7 @@ class Window final : public EventDispatcher {
         window.m_mouse_state.mouse_x_position = mouse_x_position;
         window.m_mouse_state.mouse_y_position = mouse_y_position;
         MouseMoveEvent event(window);
-        window.dispatch_event(event);
+        window.emit_event(event);
     }
 
     friend void pbr_core_window_on_framebuffer_size_change(Window& window,
@@ -145,7 +135,7 @@ class Window final : public EventDispatcher {
         window.m_specification.width  = width;
         window.m_specification.height = height;
         WindowResizeEvent event(window, width, height);
-        window.dispatch_event(event);
+        window.emit_event(event);
     }
 
   private:
@@ -156,4 +146,4 @@ class Window final : public EventDispatcher {
 
 /*----------------------------------------------------------------------------*/
 
-} // namespace pbr::core
+} // namespace vq::io

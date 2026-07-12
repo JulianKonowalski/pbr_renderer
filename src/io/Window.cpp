@@ -1,4 +1,4 @@
-#include "core/Window.hpp"
+#include "io/Window.hpp"
 
 // clang-format off
 #include <glad/glad.h>
@@ -10,7 +10,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-using namespace pbr::core;
+using namespace vq::io;
 
 static unsigned int s_window_count;
 
@@ -28,10 +28,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 /*----------------------------------------------------------------------------*/
 
-Window::Window(EventLoop& event_loop,
-               const WindowSpecification& window_specification)
-    : m_glfw_window(nullptr), m_specification(window_specification),
-      EventDispatcher(event_loop) {
+Window::Window(const WindowSpecification& window_specification)
+    : m_glfw_window(nullptr), m_specification(window_specification) {
     if (!s_window_count) {
         glfwSetErrorCallback(error_callback);
         if (!glfwInit()) {
