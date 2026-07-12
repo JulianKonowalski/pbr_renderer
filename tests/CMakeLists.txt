@@ -1,4 +1,4 @@
-project("VQ_tests" LANGUAGES CXX)
+project("VQ_tests" LANGUAGES C CXX)
 
 enable_testing()
 
@@ -6,10 +6,7 @@ file(GLOB_RECURSE SOURCES CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.cp
 
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    GTest::gtest_main
-    VQ
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE GTest::gtest_main VQ)
 
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})

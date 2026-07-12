@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace vq::tests::core::TypeId {
+
 /*----------------------------------------------------------------------------*/
 
 class MockIdableBase1 {};
@@ -64,3 +66,5 @@ TEST(Core_TypeId, type_id_independent_for_different_base_classes) {
 }
 
 /*----------------------------------------------------------------------------*/
+
+} // namespace vq::tests::core::TypeId

@@ -25,11 +25,11 @@ class Entity {
         auto component_id = m_components.find(Component::get_type_id<T>());
         if (component_id != m_components.end()) {
             throw std::runtime_error("Tried to insert a duplicate component to "
-                                     "an entity %s during a call to %s",
-                                     m_id, __FUNCTION__);
+                                     "an entity " +
+                                     m_id + " during a call to " +
+                                     __FUNCTION__);
         }
-        m_components[Component::get_type_id<T>()] =
-            new T(std::forward(args)...);
+        m_components[Component::get_type_id<T>()] = new T(args...);
     }
 
     template <typename T>

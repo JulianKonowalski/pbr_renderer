@@ -12,7 +12,7 @@ class Entity;
 
 class Component {
   public:
-    Component(Entity& parent) : m_parent(parent) {}
+    explicit Component(Entity& parent) : m_parent(parent) {}
     ~Component(void) = default;
 
     virtual void render(void)              = 0;

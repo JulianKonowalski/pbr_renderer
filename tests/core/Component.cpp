@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+namespace vq::tests::core::component {
+
 /*----------------------------------------------------------------------------*/
 
 class MockComponent1 : public vq::core::Component {
@@ -36,3 +38,5 @@ TEST(Core_Component, component_parent_is_correct) {
 }
 
 /*----------------------------------------------------------------------------*/
+
+} // namespace vq::tests::core::component
