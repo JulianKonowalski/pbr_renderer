@@ -11,6 +11,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 find_package(OpenGL REQUIRED)
 
+add_subdirectory(3rdparty/glm)
 add_subdirectory(3rdparty/glfw)
 add_subdirectory(3rdparty/glad)
 add_subdirectory(3rdparty/googletest)
