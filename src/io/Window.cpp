@@ -64,7 +64,7 @@ Window::Window(const WindowSpecification& window_specification)
 
 /*----------------------------------------------------------------------------*/
 
-Window::~Window(void) {
+Window::~Window() {
     s_window_count -= 1;
     glfwDestroyWindow(static_cast<GLFWwindow*>(m_glfw_window));
     if (!s_window_count) {
@@ -74,11 +74,11 @@ Window::~Window(void) {
 
 /*----------------------------------------------------------------------------*/
 
-static void unbind_all(void) { glfwMakeContextCurrent(nullptr); }
+static void unbind_all() { glfwMakeContextCurrent(nullptr); }
 
 /*----------------------------------------------------------------------------*/
 
-static Window* get_current(void) {
+static Window* get_current() {
     GLFWwindow* current_window = glfwGetCurrentContext();
     return current_window
                ? static_cast<Window*>(glfwGetWindowUserPointer(current_window))
@@ -87,26 +87,26 @@ static Window* get_current(void) {
 
 /*----------------------------------------------------------------------------*/
 
-void Window::close(void) {
+void Window::close() {
     glfwSetWindowShouldClose(static_cast<GLFWwindow*>(m_glfw_window), 1);
 }
 
 /*----------------------------------------------------------------------------*/
 
-void Window::update(void) {
+void Window::update() {
     glfwPollEvents();
     glfwSwapBuffers(static_cast<GLFWwindow*>(m_glfw_window));
 }
 
 /*----------------------------------------------------------------------------*/
 
-void Window::make_current(void) {
+void Window::make_current() {
     glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_glfw_window));
 }
 
 /*----------------------------------------------------------------------------*/
 
-bool Window::should_close(void) {
+bool Window::should_close() {
     return glfwWindowShouldClose(static_cast<GLFWwindow*>(m_glfw_window));
 }
 

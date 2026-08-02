@@ -11,10 +11,10 @@ namespace vq::core {
 
 class EventEmitter {
   public:
-    EventEmitter(void)  = default;
-    ~EventEmitter(void) = default;
+    EventEmitter()  = default;
+    ~EventEmitter() = default;
 
-    inline size_t get_event_handler_count(void) const {
+    inline size_t get_event_handler_count() const {
         return m_event_handlers.size();
     }
 

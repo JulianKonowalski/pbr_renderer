@@ -11,14 +11,14 @@ namespace vq::tests::core::component {
 class MockComponent1 : public vq::core::Component {
   public:
     using Component::Component;
-    void render(void) override {}
+    void render() override {}
     void update(double delta_time) override {}
 };
 
 class MockComponent2 : public vq::core::Component {
   public:
     using Component::Component;
-    void render(void) override {}
+    void render() override {}
     void update(double delta_time) override {}
 };
 

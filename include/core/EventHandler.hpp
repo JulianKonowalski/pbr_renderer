@@ -8,8 +8,8 @@ namespace vq::core {
 
 class EventHandler {
   public:
-    EventHandler(void)                = default;
-    virtual ~EventHandler(void)       = default;
+    EventHandler()                    = default;
+    virtual ~EventHandler()           = default;
     virtual void handle(Event& event) = 0;
 };
 

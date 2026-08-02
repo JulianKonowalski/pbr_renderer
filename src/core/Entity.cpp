@@ -8,7 +8,7 @@ Entity::Entity(const std::string& id) : m_id(id) {}
 
 /*----------------------------------------------------------------------------*/
 
-void Entity::render(void) {
+void Entity::render() {
     for (auto& component_it : m_components) {
         component_it.second->render();
     }

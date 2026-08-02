@@ -13,20 +13,20 @@ namespace vq::core {
 class Entity {
   public:
     explicit Entity(const std::string& id);
-    ~Entity(void) = default;
+    ~Entity() = default;
 
     template <typename T, typename... Args>
     void add_component(Args&&... args);
 
     template <typename T>
-    T* get_component(void);
+    T* get_component();
 
     template <typename T>
-    T* remove_component(void);
+    T* remove_component();
 
-    inline const std::string& get_id(void) const { return m_id; }
+    inline const std::string& get_id() const { return m_id; }
 
-    void render(void);
+    void render();
     void update(double delta_time);
 
   private:
@@ -50,7 +50,7 @@ void Entity::add_component(Args&&... args) {
 }
 
 template <typename T>
-T* Entity::get_component(void) {
+T* Entity::get_component() {
     static_assert(std::is_base_of_v<Component, T>,
                   "T must derive from vq::core::Component class");
     auto component_it = m_components.find(Component::get_type_id<T>());
@@ -60,7 +60,7 @@ T* Entity::get_component(void) {
 }
 
 template <typename T>
-T* Entity::remove_component(void) {
+T* Entity::remove_component() {
     static_assert(std::is_base_of_v<Component, T>,
                   "T must derive from vq::core::Component class");
     auto component_it = m_components.find(Component::get_type_id<T>());

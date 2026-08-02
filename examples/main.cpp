@@ -18,6 +18,8 @@ class WindowCloseHandler : public vq::core::EventHandler {
 int main(void) {
     vq::io::Window window(vq::io::Window::WindowSpecification("VQ Example"));
     WindowCloseHandler close_handler;
+
+    window.make_current();
     window.attach_event_handler(close_handler);
 
     while (!window.should_close()) {

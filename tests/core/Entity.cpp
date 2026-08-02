@@ -14,10 +14,10 @@ class MockComponentBase : public vq::core::Component {
         : vq::core::Component(parent), m_render_called(false),
           m_update_called(false) {}
 
-    inline bool render_called(void) const { return m_render_called; }
-    inline bool update_called(void) const { return m_update_called; }
+    inline bool render_called() const { return m_render_called; }
+    inline bool update_called() const { return m_update_called; }
 
-    void render(void) override { m_render_called = true; }
+    void render() override { m_render_called = true; }
     void update(double delta_time) override { m_update_called = true; }
 
   private:

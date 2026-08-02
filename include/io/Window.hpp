@@ -62,7 +62,7 @@ struct WindowResizeEvent : public vq::core::Event {
 class Window final : public vq::core::EventEmitter {
   public:
     struct WindowSpecification {
-        WindowSpecification(void)
+        WindowSpecification()
             : title("OpenGL Window"), width(800), height(600) {}
 
         WindowSpecification(const char* const title, int width = 800,
@@ -80,27 +80,25 @@ class Window final : public vq::core::EventEmitter {
         int key;
     };
 
-    static void unbind_all(void);
-    static Window* get_current(void);
+    static void unbind_all();
+    static Window* get_current();
 
     explicit Window(const WindowSpecification& window_specification =
                         WindowSpecification());
     Window(Window& other)  = delete;
     Window(Window&& other) = delete;
-    ~Window(void);
+    ~Window();
 
-    inline const WindowSpecification& get_specification(void) const {
+    inline const WindowSpecification& get_specification() const {
         return m_specification;
     }
 
-    inline const MouseState& get_mouse_state(void) const {
-        return m_mouse_state;
-    }
+    inline const MouseState& get_mouse_state() const { return m_mouse_state; }
 
-    void close(void);
-    void update(void);
-    void make_current(void);
-    bool should_close(void);
+    void close();
+    void update();
+    void make_current();
+    bool should_close();
 
     friend void pbr_core_window_on_key_click(Window& window, int key,
                                              int scancode, int action) {
