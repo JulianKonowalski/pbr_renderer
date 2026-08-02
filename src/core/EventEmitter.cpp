@@ -4,7 +4,7 @@ using namespace vq::core;
 
 /*----------------------------------------------------------------------------*/
 
-void EventEmitter::detach_handler(EventHandler& event_handler) {
+void EventEmitter::detach_event_handler(EventHandler& event_handler) {
     auto event_handler_it =
         std::find_if(m_event_handlers.begin(), m_event_handlers.end(),
                      [&](auto* handler) { return handler == &event_handler; });

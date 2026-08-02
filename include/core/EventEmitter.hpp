@@ -14,10 +14,15 @@ class EventEmitter {
     EventEmitter(void)  = default;
     ~EventEmitter(void) = default;
 
-    void detach_handler(EventHandler& event_handler);
-    inline void attach_handler(EventHandler& event_handler) {
+    inline size_t get_event_handler_count(void) const {
+        return m_event_handlers.size();
+    }
+
+    inline void attach_event_handler(EventHandler& event_handler) {
         m_event_handlers.push_back(&event_handler);
     }
+
+    void detach_event_handler(EventHandler& event_handler);
 
   protected:
     void emit_event(Event& event);
