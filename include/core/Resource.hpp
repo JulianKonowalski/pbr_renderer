@@ -8,8 +8,8 @@ namespace vq::core {
 
 class Resource {
   public:
-    explicit Resource(const std::string& id) : m_id(id) { this->load(); }
-    ~Resource() { this->unload(); };
+    explicit Resource(const std::string& id) : m_id(id) {}
+    virtual ~Resource() = default;
 
     inline const std::string& get_id() const { return m_id; }
 
