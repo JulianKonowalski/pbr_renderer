@@ -18,3 +18,4 @@ add_subdirectory(3rdparty/googletest)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
+add_subdirectory(${CMAKE_SOURCE_DIR}/examples)
