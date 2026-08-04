@@ -8,16 +8,28 @@ namespace vq::core {
 
 class Resource {
   public:
-    explicit Resource(const std::string& id) : m_id(id) {}
+    explicit Resource(const std::string& id);
     virtual ~Resource() = default;
 
-    inline const std::string& get_id() const { return m_id; }
+    Resource(Resource&& other);
+    Resource& operator=(Resource&& other);
 
-    virtual void load()   = 0;
-    virtual void unload() = 0;
+    Resource(const Resource&)            = delete;
+    Resource& operator=(const Resource&) = delete;
+
+    inline const std::string& get_id() const { return m_id; }
+    inline bool is_loaded() const { return m_is_loaded; }
+
+    bool load();
+    void unload();
+
+  protected:
+    virtual bool do_load()   = 0;
+    virtual void do_unload() = 0;
 
   private:
     std::string m_id;
+    bool m_is_loaded;
 };
 
 /*----------------------------------------------------------------------------*/
