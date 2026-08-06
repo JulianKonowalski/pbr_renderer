@@ -4,7 +4,8 @@ using namespace vq::core;
 
 /*----------------------------------------------------------------------------*/
 
-Resource::Resource(const std::string& id) : m_is_loaded(false), m_id(id) {}
+Resource::Resource(const std::string& id, const std::string& asset_path)
+    : m_id(id), m_asset_path(asset_path), m_is_loaded(false) {}
 
 /*----------------------------------------------------------------------------*/
 
@@ -13,8 +14,9 @@ Resource::Resource(Resource&& other) { *this = std::move(other); }
 /*----------------------------------------------------------------------------*/
 
 Resource& Resource::operator=(Resource&& other) {
-    m_id        = std::move(other.m_id);
-    m_is_loaded = other.m_is_loaded;
+    m_id         = std::move(other.m_id);
+    m_asset_path = std::move(other.m_asset_path);
+    m_is_loaded  = other.m_is_loaded;
     return *this;
 }
 
