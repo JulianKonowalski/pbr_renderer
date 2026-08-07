@@ -16,7 +16,10 @@ static unsigned int s_window_count;
 
 /*----------------------------------------------------------------------------*/
 
-void error_callback(int error_code, const char* description);
+void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id,
+                                  GLenum severity, GLsizei length,
+                                  const GLchar* message, const void* userParam);
+void glfw_error_callback(int error_code, const char* description);
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mods);
 void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
@@ -31,12 +34,17 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 Window::Window(const WindowSpecification& window_specification)
     : m_glfw_window(nullptr), m_specification(window_specification) {
     if (!s_window_count) {
-        glfwSetErrorCallback(error_callback);
+        glfwSetErrorCallback(glfw_error_callback);
         if (!glfwInit()) {
             throw std::runtime_error("Failed to initialize GLFW");
         }
     }
     s_window_count += 1;
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
     m_glfw_window = glfwCreateWindow(
         window_specification.width, window_specification.height,
@@ -45,10 +53,14 @@ Window::Window(const WindowSpecification& window_specification)
         throw std::runtime_error("Failed to create a GLFW window");
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_glfw_window));
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        throw std::runtime_error("Failed to load OpenGL functions");
+    }
+
+    glDebugMessageCallback(gl_error_callback, nullptr);
+
     glfwSetWindowUserPointer(static_cast<GLFWwindow*>(m_glfw_window), this);
     glfwSetKeyCallback(static_cast<GLFWwindow*>(m_glfw_window), key_callback);
     glfwSetScrollCallback(static_cast<GLFWwindow*>(m_glfw_window),
@@ -112,7 +124,14 @@ bool Window::should_close() {
 
 /*----------------------------------------------------------------------------*/
 
-void error_callback(int error_code, const char* description) {
+void GLAPIENTRY gl_error_callback(GLenum source, GLenum type, GLuint id,
+                                  GLenum severity, GLsizei length,
+                                  const GLchar* message,
+                                  const void* userParam) {
+    std::cout << "OpenGL Error[" << type << "]:\n" << message << std::endl;
+}
+
+void glfw_error_callback(int error_code, const char* description) {
     std::cout << "GLFW Error[" << error_code << "]:\n"
               << description << std::endl;
 }
