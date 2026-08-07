@@ -46,7 +46,7 @@ void Entity::add_component(Args&&... args) {
                                  "an entity " +
                                  m_id + " during a call to " + __FUNCTION__);
     }
-    m_components[Component::get_type_id<T>()] = new T(args...);
+    m_components[Component::get_type_id<T>()] = new T(*this, args...);
 }
 
 template <typename T>

@@ -46,17 +46,16 @@ TEST(Core_Entity, entity_id_is_correct) {
 
 TEST(Core_Entity, entity_add_component) {
     vq::core::Entity entity("test_entity");
-    ASSERT_NO_THROW(entity.add_component<MockComponent1>(entity));
-    ASSERT_NO_THROW(entity.add_component<MockComponent2>(entity));
-    ASSERT_THROW(entity.add_component<MockComponent1>(entity),
-                 std::runtime_error);
+    ASSERT_NO_THROW(entity.add_component<MockComponent1>());
+    ASSERT_NO_THROW(entity.add_component<MockComponent2>());
+    ASSERT_THROW(entity.add_component<MockComponent1>(), std::runtime_error);
 }
 
 /*----------------------------------------------------------------------------*/
 
 TEST(Core_Entity, entity_get_component) {
     vq::core::Entity entity("test_entity");
-    entity.add_component<MockComponent1>(entity);
+    entity.add_component<MockComponent1>();
 
     auto* component1 = entity.get_component<MockComponent1>();
     ASSERT_NE(component1, nullptr);
@@ -70,7 +69,7 @@ TEST(Core_Entity, entity_get_component) {
 
 TEST(Core_Entity, entity_remove_component) {
     vq::core::Entity entity("test_entity");
-    entity.add_component<MockComponent1>(entity);
+    entity.add_component<MockComponent1>();
 
     auto* component1 = entity.remove_component<MockComponent1>();
     ASSERT_NE(component1, nullptr);
@@ -85,8 +84,8 @@ TEST(Core_Entity, entity_remove_component) {
 
 TEST(Core_Entity, entity_render_called_for_all_components) {
     vq::core::Entity entity("test_entity");
-    entity.add_component<MockComponent1>(entity);
-    entity.add_component<MockComponent2>(entity);
+    entity.add_component<MockComponent1>();
+    entity.add_component<MockComponent2>();
     ASSERT_FALSE(entity.get_component<MockComponent1>()->render_called());
     ASSERT_FALSE(entity.get_component<MockComponent2>()->render_called());
     entity.render();
@@ -98,8 +97,8 @@ TEST(Core_Entity, entity_render_called_for_all_components) {
 
 TEST(Core_Entity, entity_update_called_for_all_components) {
     vq::core::Entity entity("test_entity");
-    entity.add_component<MockComponent1>(entity);
-    entity.add_component<MockComponent2>(entity);
+    entity.add_component<MockComponent1>();
+    entity.add_component<MockComponent2>();
     ASSERT_FALSE(entity.get_component<MockComponent1>()->update_called());
     ASSERT_FALSE(entity.get_component<MockComponent2>()->update_called());
     entity.update(0.0);
