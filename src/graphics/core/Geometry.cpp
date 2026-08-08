@@ -22,14 +22,9 @@ Geometry Geometry::plane_geometry(const std::array<float, 2>& min_vertex,
     glBindVertexArray(geometry.m_vertex_array);
 
     {
-        std::array<float, 12> positions = {min_vertex[0], min_vertex[1], 0.0f,
-                                           max_vertex[0], min_vertex[1], 0.0f,
-                                           max_vertex[0], max_vertex[1], 0.0f,
-                                           min_vertex[0], max_vertex[1], 0.0f};
-        std::array<float, 12> normals   = {0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-                                           0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
-        std::array<float, 8> texture_coordinates = {0.0, 0.0, 1.0, 0.0,
-                                                    1.0, 1.0, 0.0, 1.0};
+        std::array<float, 12> positions          = {0.0f};
+        std::array<float, 12> normals            = {0.0f};
+        std::array<float, 8> texture_coordinates = {0.0f};
 
         glBindBuffer(GL_ARRAY_BUFFER,
                      geometry.m_buffers[AttributeType::POSITION]);
@@ -52,7 +47,7 @@ Geometry Geometry::plane_geometry(const std::array<float, 2>& min_vertex,
         glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
     }
     {
-        std::array<unsigned int, 6> indices = {0, 1, 2, 0, 2, 3};
+        std::array<unsigned int, 6> indices = {};
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                      geometry.m_buffers[AttributeType::INDEX]);
