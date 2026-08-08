@@ -10,9 +10,12 @@ excuse to do some graphics programming in my free time.
 
 This project is heavily inspired by the concepts in [LearnOpenGL](https://learnopengl.com/)
 course as well as [Building a Simple Engine](https://docs.vulkan.org/tutorial/latest/Building_a_Simple_Engine/introduction.html).
-I won't be doing Vulkan for now though, as my goal is to create something
-usable, rather than learning a new graphics API and abandoning the project.
-Besides, from what I know, the Vulkan API is not really supported in any of the
-web environments.
+I also took inspiration from [THREE.js](https://github.com/mrdoob/three.js/) and
+[OpenSceneGraph](https://github.com/openscenegraph/OpenSceneGraph), as I like
+their way of structuring graphics-related code. I won't be doing Vulkan for now
+though, as my goal is to create something usable, rather than learning a new
+graphics API and abandoning the project. Additionally, from what I know, the
+Vulkan API is not really supported in any of the web environments, so it would
+fail to provide the core functionality of this project.
 
 This readme file will get updated as I go.
