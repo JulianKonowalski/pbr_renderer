@@ -1,4 +1,5 @@
 #include <core/Entity.hpp>
+#include <core/ResourceManager.hpp>
 #include <entity_components/MeshComponent.hpp>
 #include <glad/glad.h>
 #include <graphics/core/Program.hpp>
@@ -95,18 +96,32 @@ int main(void) {
     window.make_current();
     window.attach_event_handler(close_handler);
 
-    vq::graphics::core::Shader vertex_shader(
+    vq::core::ResourceManager& resource_manager =
+        vq::core::ResourceManager::get_instance();
+
+    resource_manager.load_resource<vq::graphics::core::Shader>(
         "vertex_shader", s_base_resource_path + "shaders/passthrough.vert.glsl",
         vq::graphics::core::Shader::ShaderType::VERTEX);
-    vq::graphics::core::Shader fragment_shader(
-        "vertex_shader", s_base_resource_path + "shaders/passthrough.frag.glsl",
+    resource_manager.load_resource<vq::graphics::core::Shader>(
+        "fragment_shader",
+        s_base_resource_path + "shaders/passthrough.frag.glsl",
         vq::graphics::core::Shader::ShaderType::FRAGMENT);
-    vq::graphics::core::Program program("program",
-                                        {&vertex_shader, &fragment_shader});
 
-    vertex_shader.load();
-    fragment_shader.load();
-    program.load();
+    vq::core::ResourceHandle<vq::graphics::core::Shader> vertex_shader_handle =
+        resource_manager.get_resource<vq::graphics::core::Shader>(
+            "vertex_shader");
+    vq::core::ResourceHandle<vq::graphics::core::Shader>
+        fragment_shader_handle =
+            resource_manager.get_resource<vq::graphics::core::Shader>(
+                "fragment_shader");
+
+    resource_manager.load_resource<vq::graphics::core::Program>(
+        "program",
+        std::vector<vq::graphics::core::Shader*>(
+            {&(vertex_shader_handle.get()), &(fragment_shader_handle.get())}));
+
+    vq::core::ResourceHandle<vq::graphics::core::Program> program_handle =
+        resource_manager.get_resource<vq::graphics::core::Program>("program");
 
     unsigned int VAO = 0;
     unsigned int IBO = 0;
@@ -116,7 +131,7 @@ int main(void) {
     while (!window.should_close()) {
         window.update();
 
-        program.bind();
+        program_handle.get().bind();
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -125,7 +140,7 @@ int main(void) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
         glBindVertexArray(GL_NONE);
 
-        program.unbind();
+        program_handle.get().unbind();
     }
 
     cleanup_geometry(VAO, IBO, buffers);

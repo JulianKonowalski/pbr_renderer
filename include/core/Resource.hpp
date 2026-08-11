@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/TypeId.hpp"
+
 #include <string>
 
 namespace vq::core {
@@ -18,6 +20,9 @@ class Resource {
     Resource& operator=(Resource&& other);
     Resource& operator=(const Resource&) = delete;
 
+    template <typename T>
+    static size_t get_type_id();
+
     inline const std::string& get_id() const { return m_id; }
     inline const std::string& get_asset_path() const { return m_asset_path; }
     inline bool is_loaded() const { return m_is_loaded; }
@@ -34,6 +39,15 @@ class Resource {
     std::string m_id;
     bool m_is_loaded;
 };
+
+/*----------------------------------------------------------------------------*/
+
+template <typename T>
+size_t Resource::get_type_id() {
+    static_assert(std::is_base_of_v<Resource, T>,
+                  "T must derive from vq::core::Resource class");
+    return TypeId<Resource>::get_type_id<T>();
+}
 
 /*----------------------------------------------------------------------------*/
 

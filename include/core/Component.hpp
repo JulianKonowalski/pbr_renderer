@@ -15,13 +15,13 @@ class Component {
     explicit Component(Entity& parent) : m_parent(parent) {}
     ~Component() = default;
 
+    template <typename T>
+    static size_t get_type_id();
+
     virtual void render()                  = 0;
     virtual void update(double delta_time) = 0;
 
     inline Entity& get_parent() { return m_parent; }
-
-    template <typename T>
-    static size_t get_type_id();
 
   protected:
     Entity& m_parent;
