@@ -29,6 +29,7 @@ class Program : public vq::core::Resource {
 
   protected:
     virtual bool do_load() noexcept override;
+    virtual bool do_reload() noexcept override;
     virtual void do_unload() noexcept override;
 
   private:

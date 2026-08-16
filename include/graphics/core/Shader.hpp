@@ -22,6 +22,7 @@ class Shader final : public vq::core::Resource {
 
   protected:
     bool do_load() noexcept override;
+    bool do_reload() noexcept override;
     void do_unload() noexcept override;
 
   private:

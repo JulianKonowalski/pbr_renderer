@@ -8,9 +8,12 @@ namespace vq::tests::core::Resource {
 
 class MockResource : public vq::core::Resource {
   public:
-    using vq::core::Resource::Resource;
+    explicit MockResource(const std::string& id,
+                          const std::string& asset_path = "")
+        : vq::core::Resource(id, asset_path) {}
+    ~MockResource() override = default;
 
-    MockResource(MockResource&& other) : vq::core::Resource("") {
+    MockResource(MockResource&& other) : vq::core::Resource("", "") {
         *this = std::move(other);
     }
 
@@ -19,10 +22,9 @@ class MockResource : public vq::core::Resource {
         return *this;
     }
 
-    ~MockResource() override = default;
-
   protected:
     bool do_load() noexcept override { return true; }
+    bool do_reload() noexcept override { return true; }
     void do_unload() noexcept override {}
 };
 

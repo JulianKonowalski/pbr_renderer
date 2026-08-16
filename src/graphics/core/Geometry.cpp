@@ -121,7 +121,7 @@ Geometry::~Geometry() {
 
 /*----------------------------------------------------------------------------*/
 
-Geometry::Geometry(Geometry&& other) : vq::core::Resource("") {
+Geometry::Geometry(Geometry&& other) : vq::core::Resource("", "") {
     *this = std::move(other);
 }
 
@@ -157,6 +157,10 @@ bool Geometry::do_load() noexcept {
      */
     return true;
 }
+
+/*----------------------------------------------------------------------------*/
+
+bool Geometry::do_reload() noexcept { return false; }
 
 /*----------------------------------------------------------------------------*/
 

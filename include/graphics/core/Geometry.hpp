@@ -50,6 +50,7 @@ class Geometry : vq::core::Resource {
 
   protected:
     virtual bool do_load() noexcept override;
+    virtual bool do_reload() noexcept override;
     virtual void do_unload() noexcept override;
 
     std::array<unsigned int, AttributeType::COUNT> m_buffers;

@@ -29,6 +29,10 @@ bool Resource::load() {
 
 /*----------------------------------------------------------------------------*/
 
+bool Resource::reload() { return m_is_loaded ? this->do_reload() : false; }
+
+/*----------------------------------------------------------------------------*/
+
 void Resource::unload() {
     if (!m_is_loaded) {
         return;
