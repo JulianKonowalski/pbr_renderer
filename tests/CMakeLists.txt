@@ -11,10 +11,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE GTest::gtest_main VQ)
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})
 
-add_custom_command(
-    TARGET ${PROJECT_NAME}
-    COMMENT "Run all tests"
-    POST_BUILD
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND ./tests/${PROJECT_NAME}
-)
+# add_custom_command(
+#     TARGET ${PROJECT_NAME}
+#     COMMENT "Run all tests"
+#     POST_BUILD
+#     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+#     COMMAND ./tests/${PROJECT_NAME}
+# )

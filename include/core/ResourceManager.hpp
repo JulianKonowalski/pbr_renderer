@@ -2,6 +2,10 @@
 
 #include "core/Resource.hpp"
 
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
@@ -11,12 +15,13 @@ namespace vq::core {
 
 template <typename ResourceType>
 class ResourceHandle {
+    static_assert(std::is_base_of_v<Resource, ResourceType>,
+                  "ResourceType must derive from vq::core::Resource");
 
     friend class ResourceManager;
     using ThisType = ResourceHandle<ResourceType>;
 
   public:
-    ResourceHandle(ResourceType* resource, ResourceManager& resource_manager);
     ~ResourceHandle();
 
     ResourceHandle(const ThisType& other)      = delete;
@@ -25,11 +30,17 @@ class ResourceHandle {
     ResourceHandle(ThisType&& other);
     ThisType& operator=(ThisType&& other);
 
-    inline bool is_valid() const { return m_resource != nullptr; }
-    ResourceType& get() const { return *m_resource; }
+    inline bool is_valid() const { return m_resource && true; }
+
+    inline ResourceType& get() const {
+        return *(static_cast<ResourceType*>(m_resource.get()));
+    }
 
   private:
-    ResourceType* m_resource;
+    ResourceHandle(const std::shared_ptr<Resource>& resource,
+                   ResourceManager& resource_manager);
+
+    std::shared_ptr<Resource> m_resource;
     ResourceManager& m_resource_manager;
 };
 
@@ -54,42 +65,51 @@ class ResourceManager {
     ResourceHandle<ResourceType> get_resource(const std::string& resource_id);
 
     template <typename ResourceType>
+    size_t get_resource_user_count(const std::string& resource_id);
+
+    template <typename ResourceType>
     void release_handle(ResourceHandle<ResourceType>& resource_handle);
 
   private:
     ResourceManager() = default;
 
     std::unordered_map<
-        size_t, std::unordered_map<std::string, std::pair<Resource*, size_t>>>
+        size_t, std::unordered_map<std::string, std::shared_ptr<Resource>>>
         m_resources;
 };
 
 /*----------------------------------------------------------------------------*/
 
 template <typename ResourceType>
-ResourceHandle<ResourceType>::ResourceHandle(ResourceType* resource,
-                                             ResourceManager& resource_manager)
-    : m_resource(resource), m_resource_manager(resource_manager) {}
+ResourceHandle<ResourceType>::ResourceHandle(
+    const std::shared_ptr<Resource>& resource,
+    ResourceManager& resource_manager)
+    : m_resource(resource), m_resource_manager(resource_manager) {
+    // don't throw on nullptr !
+    if (m_resource && !dynamic_cast<ResourceType*>(m_resource.get())) {
+        throw std::runtime_error(
+            "Failed to create a ResourceHandle object due to a type mismatch "
+            "between ResourceType template argument and actual type of the "
+            "resource");
+    }
+}
 
 template <typename ResourceType>
 ResourceHandle<ResourceType>::~ResourceHandle() {
-    m_resource_manager.release_handle(*this);
+    m_resource_manager.release_handle<ResourceType>(*this);
 }
 
 template <typename ResourceType>
 ResourceHandle<ResourceType>::ResourceHandle(
     ResourceHandle<ResourceType>&& other)
     : m_resource(std::move(other.m_resource)),
-      m_resource_manager(other.m_resource_manager) {
-    other.m_resource = nullptr;
-}
+      m_resource_manager(other.m_resource_manager) {}
 
 template <typename ResourceType>
 ResourceHandle<ResourceType>&
 ResourceHandle<ResourceType>::operator=(ResourceHandle<ResourceType>&& other) {
     m_resource         = std::move(other.m_resource);
     m_resource_manager = other.m_resource_manager;
-    other.m_resource   = nullptr;
     return *this;
 }
 
@@ -98,18 +118,18 @@ ResourceHandle<ResourceType>::operator=(ResourceHandle<ResourceType>&& other) {
 template <typename ResourceType, typename... Args>
 bool ResourceManager::load_resource(const std::string& resource_id,
                                     Args&&... args) {
-    ResourceHandle<ResourceType> resource_handle =
-        this->get_resource<ResourceType>(resource_id);
+    auto resource_handle = this->get_resource<ResourceType>(resource_id);
     if (resource_handle.is_valid()) {
         return false;
     }
-    ResourceType* resource = new ResourceType(resource_id, args...);
-    if (!resource->load()) {
-        delete resource;
+
+    auto resource = std::make_shared<ResourceType>(resource_id, args...);
+    if (!resource.get()->load()) {
         return false;
     }
+
     m_resources[Resource::get_type_id<ResourceType>()].insert(
-        {resource_id, std::make_pair(resource, static_cast<size_t>(0))});
+        {resource_id, resource});
     return true;
 }
 
@@ -119,14 +139,19 @@ ResourceManager::get_resource(const std::string& resource_id) {
     auto& resource_map = m_resources[Resource::get_type_id<ResourceType>()];
     auto it            = resource_map.find(resource_id);
 
-    if (it == resource_map.end()) {
-        return std::move(ResourceHandle<ResourceType>(
-            static_cast<ResourceType*>(nullptr), *this));
-    }
+    return it != resource_map.end()
+               ? std::move(ResourceHandle<ResourceType>(it->second, *this))
+               : std::move(ResourceHandle<ResourceType>(
+                     std::shared_ptr<Resource>(nullptr), *this));
+}
 
-    it->second.second += 1;
-    return std::move(ResourceHandle<ResourceType>(
-        static_cast<ResourceType*>(it->second.first), *this));
+template <typename ResourceType>
+size_t
+ResourceManager::get_resource_user_count(const std::string& resource_id) {
+    auto& resource_map = m_resources[Resource::get_type_id<ResourceType>()];
+    auto it            = resource_map.find(resource_id);
+
+    return it != resource_map.end() ? it->second.use_count() - 1 : 0;
 }
 
 template <typename ResourceType>
@@ -137,11 +162,15 @@ void ResourceManager::release_handle(
     }
 
     auto& resource_map = m_resources[Resource::get_type_id<ResourceType>()];
-    auto it = resource_map.find(resource_handle.m_resource->get_id());
+    auto it            = resource_map.find(resource_handle.get().get_id());
+    if (it == resource_map.end()) {
+        return;
+    }
 
-    if (it != resource_map.end()) {
-        it->second.second -= 1;
-        resource_handle.m_resource = static_cast<ResourceType*>(nullptr);
+    resource_handle.m_resource.reset();
+    if (it->second.use_count() == 1) {
+        it->second.reset();
+        resource_map.erase(it);
     }
 }
 
