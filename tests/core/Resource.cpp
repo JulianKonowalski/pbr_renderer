@@ -10,7 +10,7 @@ class MockResource : public vq::core::Resource {
   public:
     explicit MockResource(const std::string& id,
                           const std::string& asset_path = "")
-        : vq::core::Resource(id, asset_path) {}
+        : vq::core::Resource(id, asset_path), m_is_reloaded(false) {}
     ~MockResource() override = default;
 
     MockResource(MockResource&& other) : vq::core::Resource("", "") {
@@ -22,10 +22,18 @@ class MockResource : public vq::core::Resource {
         return *this;
     }
 
+    inline bool is_reloaded() const { return m_is_reloaded; }
+
   protected:
     bool do_load() noexcept override { return true; }
-    bool do_reload() noexcept override { return true; }
+    bool do_reload() noexcept override {
+        m_is_reloaded = true;
+        return true;
+    }
     void do_unload() noexcept override {}
+
+  private:
+    bool m_is_reloaded;
 };
 
 /*----------------------------------------------------------------------------*/
@@ -75,12 +83,19 @@ TEST(Core_Resource, resource_asset_path_is_correct) {
 
 /*----------------------------------------------------------------------------*/
 
-TEST(Core_Resource, resource_load_and_unload_are_called) {
+TEST(Core_Resource, resource_load_reload_and_unload_are_called) {
     MockResource mock_resource("mock_resource");
     ASSERT_FALSE(mock_resource.is_loaded());
+    ASSERT_FALSE(mock_resource.is_reloaded());
 
-    mock_resource.load();
+    ASSERT_FALSE(mock_resource.reload());
+    ASSERT_FALSE(mock_resource.is_loaded());
+
+    ASSERT_TRUE(mock_resource.load());
     ASSERT_TRUE(mock_resource.is_loaded());
+
+    ASSERT_TRUE(mock_resource.reload());
+    ASSERT_TRUE(mock_resource.is_reloaded());
 
     mock_resource.unload();
     ASSERT_FALSE(mock_resource.is_loaded());
