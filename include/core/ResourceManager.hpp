@@ -2,12 +2,10 @@
 
 #include "core/Resource.hpp"
 
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
 #include <unordered_map>
-#include <utility>
 
 namespace vq::core {
 

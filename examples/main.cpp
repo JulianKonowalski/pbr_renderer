@@ -77,7 +77,7 @@ class WindowCloseHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
     WindowCloseHandler()  = default;
     ~WindowCloseHandler() = default;
 
-    void handle(vq::io::KeyEvent& event) override {
+    void handle(vq::io::KeyEvent& event) noexcept override {
         if (event.key == 256) {
             event.window.close();
             event.set_handled();
