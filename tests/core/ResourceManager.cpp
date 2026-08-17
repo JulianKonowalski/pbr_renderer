@@ -116,34 +116,6 @@ TEST(Core_ResourceManager, modifies_resource) {
 
 /*----------------------------------------------------------------------------*/
 
-TEST(Core_ResourceManager, gets_resource_user_count) {
-    auto resource_manager = vq::core::ResourceManager::get_instance();
-
-    resource_manager.load_resource<MockResourceEmpty>(
-        "test_gets_resource_user_count");
-    auto resource_handle_1 = resource_manager.get_resource<MockResourceEmpty>(
-        "test_gets_resource_user_count");
-
-    ASSERT_EQ(resource_manager.get_resource_user_count<MockResourceEmpty>(
-                  "test_gets_resource_user_count"),
-              1);
-
-    {
-        auto resource_handle_2 =
-            resource_manager.get_resource<MockResourceEmpty>(
-                "test_gets_resource_user_count");
-        ASSERT_EQ(resource_manager.get_resource_user_count<MockResourceEmpty>(
-                      "test_gets_resource_user_count"),
-                  2);
-    }
-
-    ASSERT_EQ(resource_manager.get_resource_user_count<MockResourceEmpty>(
-                  "test_gets_resource_user_count"),
-              1);
-}
-
-/*----------------------------------------------------------------------------*/
-
 /**
  * Resource gets deleted only after it had AT LEAST ONE user. If it's loaded but
  * never used, it will hang around pretty much forever. I will probably change

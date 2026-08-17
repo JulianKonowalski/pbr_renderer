@@ -15,6 +15,8 @@ class Entity {
     explicit Entity(const std::string& id);
     ~Entity() = default;
 
+    inline const std::string& get_id() const { return m_id; }
+
     template <typename T, typename... Args>
     void add_component(Args&&... args);
 
@@ -23,8 +25,6 @@ class Entity {
 
     template <typename T>
     T* remove_component();
-
-    inline const std::string& get_id() const { return m_id; }
 
     void render();
     void update(double delta_time);

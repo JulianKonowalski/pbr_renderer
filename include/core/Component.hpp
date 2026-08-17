@@ -15,26 +15,19 @@ class Component {
     explicit Component(Entity& parent) : m_parent(parent) {}
     ~Component() = default;
 
-    template <typename T>
-    static size_t get_type_id();
+    template <typename ChildType>
+    static inline size_t get_type_id() {
+        return TypeId<Component>::get_type_id<ChildType>();
+    }
+
+    inline Entity& get_parent() { return m_parent; }
 
     virtual void render()                  = 0;
     virtual void update(double delta_time) = 0;
 
-    inline Entity& get_parent() { return m_parent; }
-
   protected:
     Entity& m_parent;
 };
-
-/*----------------------------------------------------------------------------*/
-
-template <typename T>
-size_t Component::get_type_id() {
-    static_assert(std::is_base_of_v<Component, T>,
-                  "T must derive from vq::core::Component class");
-    return TypeId<Component>::get_type_id<T>();
-}
 
 /*----------------------------------------------------------------------------*/
 

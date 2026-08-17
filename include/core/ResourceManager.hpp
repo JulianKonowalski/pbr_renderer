@@ -50,11 +50,11 @@ class ResourceManager {
   public:
     ~ResourceManager() = default;
 
-    ResourceManager(const ResourceManager&)            = default;
-    ResourceManager& operator=(const ResourceManager&) = default;
+    ResourceManager(const ResourceManager& other)            = default;
+    ResourceManager& operator=(const ResourceManager& other) = default;
 
-    ResourceManager(ResourceManager&&)            = delete;
-    ResourceManager& operator=(ResourceManager&&) = delete;
+    ResourceManager(ResourceManager&& other)            = delete;
+    ResourceManager& operator=(ResourceManager&& other) = delete;
 
     static ResourceManager& get_instance();
 
@@ -63,9 +63,6 @@ class ResourceManager {
 
     template <typename ResourceType>
     ResourceHandle<ResourceType> get_resource(const std::string& resource_id);
-
-    template <typename ResourceType>
-    size_t get_resource_user_count(const std::string& resource_id);
 
     template <typename ResourceType>
     void release_handle(ResourceHandle<ResourceType>& resource_handle);
@@ -143,15 +140,6 @@ ResourceManager::get_resource(const std::string& resource_id) {
                ? std::move(ResourceHandle<ResourceType>(it->second, *this))
                : std::move(ResourceHandle<ResourceType>(
                      std::shared_ptr<Resource>(nullptr), *this));
-}
-
-template <typename ResourceType>
-size_t
-ResourceManager::get_resource_user_count(const std::string& resource_id) {
-    auto& resource_map = m_resources[Resource::get_type_id<ResourceType>()];
-    auto it            = resource_map.find(resource_id);
-
-    return it != resource_map.end() ? it->second.use_count() - 1 : 0;
 }
 
 template <typename ResourceType>

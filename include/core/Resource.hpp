@@ -14,13 +14,15 @@ class Resource {
     virtual ~Resource() = default;
 
     Resource(Resource&& other);
-    Resource(const Resource&) = delete;
-
     Resource& operator=(Resource&& other);
-    Resource& operator=(const Resource&) = delete;
 
-    template <typename T>
-    static size_t get_type_id();
+    Resource(const Resource& other)            = delete;
+    Resource& operator=(const Resource& other) = delete;
+
+    template <typename ChildType>
+    static inline size_t get_type_id() {
+        return TypeId<Resource>::get_type_id<ChildType>();
+    }
 
     inline const std::string& get_id() const { return m_id; }
     inline const std::string& get_asset_path() const { return m_asset_path; }
@@ -36,19 +38,10 @@ class Resource {
     virtual void do_unload() noexcept = 0;
 
   private:
-    std::string m_asset_path;
     std::string m_id;
+    std::string m_asset_path;
     bool m_is_loaded;
 };
-
-/*----------------------------------------------------------------------------*/
-
-template <typename T>
-size_t Resource::get_type_id() {
-    static_assert(std::is_base_of_v<Resource, T>,
-                  "T must derive from vq::core::Resource class");
-    return TypeId<Resource>::get_type_id<T>();
-}
 
 /*----------------------------------------------------------------------------*/
 
