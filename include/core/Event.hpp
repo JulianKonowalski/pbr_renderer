@@ -38,7 +38,7 @@ class EventHandlerBase {
     ~EventHandlerBase();
 
   protected:
-    virtual void handle(EventType& event) {}
+    virtual void handle(EventType& event) noexcept {}
 
   private:
     bool attach_event_emitter(EventEmitterBase<EventType>& event_emitter);

@@ -28,7 +28,7 @@ class MockEventHandler : public vq::core::EventHandler<MockEventWithTestValue> {
   public:
     MockEventHandler() : m_event_handled(false) {}
 
-    void handle(MockEventWithTestValue& event) override {
+    void handle(MockEventWithTestValue& event) noexcept override {
         m_event_handled = true;
         event.set_handled();
     }
