@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/Event.hpp"
-#include "core/EventEmitter.hpp"
 
 namespace vq::io {
 
@@ -11,7 +10,7 @@ class Window;
 
 /*----------------------------------------------------------------------------*/
 
-struct KeyEvent : public vq::core::Event {
+struct KeyEvent : public vq::core::EventBase {
     explicit KeyEvent(Window& window, int key, int scancode, int action)
         : window(window), key(key), scancode(scancode), action(action) {}
     Window& window;
@@ -20,7 +19,7 @@ struct KeyEvent : public vq::core::Event {
     const int action;
 };
 
-struct MouseScrollEvent : public vq::core::Event {
+struct MouseScrollEvent : public vq::core::EventBase {
     explicit MouseScrollEvent(Window& window, double scroll_x_offset,
                               double scroll_y_offset)
         : window(window), scroll_x_offset(scroll_x_offset),
@@ -30,7 +29,7 @@ struct MouseScrollEvent : public vq::core::Event {
     const double scroll_y_offset;
 };
 
-struct MouseButtonEvent : public vq::core::Event {
+struct MouseButtonEvent : public vq::core::EventBase {
     explicit MouseButtonEvent(Window& window, int button, int action, int mods)
         : window(window), button(button), action(action), mods(mods) {}
     Window& window;
@@ -39,17 +38,17 @@ struct MouseButtonEvent : public vq::core::Event {
     const int mods;
 };
 
-struct MouseMoveEvent : public vq::core::Event {
+struct MouseMoveEvent : public vq::core::EventBase {
     explicit MouseMoveEvent(Window& window) : window(window) {}
     Window& window;
 };
 
-struct MouseDragEvent : public vq::core::Event {
+struct MouseDragEvent : public vq::core::EventBase {
     explicit MouseDragEvent(Window& window) : window(window) {}
     Window& window;
 };
 
-struct WindowResizeEvent : public vq::core::Event {
+struct WindowResizeEvent : public vq::core::EventBase {
     explicit WindowResizeEvent(Window& window, int width, int height)
         : window(window), width(width), height(height) {}
     Window& window;
@@ -59,7 +58,10 @@ struct WindowResizeEvent : public vq::core::Event {
 
 /*----------------------------------------------------------------------------*/
 
-class Window final : public vq::core::EventEmitter {
+class Window final
+    : public vq::core::EventEmitter<KeyEvent, MouseScrollEvent,
+                                    MouseButtonEvent, MouseMoveEvent,
+                                    MouseDragEvent, WindowResizeEvent> {
   public:
     struct WindowSpecification {
         WindowSpecification()
@@ -102,20 +104,17 @@ class Window final : public vq::core::EventEmitter {
 
     friend void pbr_core_window_on_key_click(Window& window, int key,
                                              int scancode, int action) {
-        KeyEvent event(window, key, scancode, action);
-        window.emit_event(event);
+        window.emit_event<KeyEvent>(window, key, scancode, action);
     }
 
     friend void pbr_core_window_on_scroll(Window& window, double x_offset,
                                           double y_offset) {
-        MouseScrollEvent event(window, x_offset, y_offset);
-        window.emit_event(event);
+        window.emit_event<MouseScrollEvent>(window, x_offset, y_offset);
     }
 
     friend void pbr_core_window_on_mouse_button(Window& window, int button,
                                                 int action, int mods) {
-        MouseButtonEvent event(window, button, action, mods);
-        window.emit_event(event);
+        window.emit_event<MouseButtonEvent>(window, button, action, mods);
     }
 
     friend void pbr_core_window_on_cursor_pos_change(Window& window,
@@ -123,8 +122,7 @@ class Window final : public vq::core::EventEmitter {
                                                      double mouse_y_position) {
         window.m_mouse_state.mouse_x_position = mouse_x_position;
         window.m_mouse_state.mouse_y_position = mouse_y_position;
-        MouseMoveEvent event(window);
-        window.emit_event(event);
+        window.emit_event<MouseMoveEvent>(window);
     }
 
     friend void pbr_core_window_on_framebuffer_size_change(Window& window,
@@ -132,8 +130,7 @@ class Window final : public vq::core::EventEmitter {
                                                            int height) {
         window.m_specification.width  = width;
         window.m_specification.height = height;
-        WindowResizeEvent event(window, width, height);
-        window.emit_event(event);
+        window.emit_event<WindowResizeEvent>(window, width, height);
     }
 
   private:

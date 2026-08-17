@@ -1,6 +1,6 @@
-#include <core/Entity.hpp>
+#include <array>
+#include <core/Event.hpp>
 #include <core/ResourceManager.hpp>
-#include <entity_components/MeshComponent.hpp>
 #include <glad/glad.h>
 #include <graphics/core/Program.hpp>
 #include <graphics/core/Shader.hpp>
@@ -72,17 +72,15 @@ void cleanup_geometry(unsigned int& VAO, unsigned int IBO,
 
 /*----------------------------------------------------------------------------*/
 
-class WindowCloseHandler : public vq::core::EventHandler {
+class WindowCloseHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
   public:
-    WindowCloseHandler()           = default;
-    ~WindowCloseHandler() override = default;
+    WindowCloseHandler()  = default;
+    ~WindowCloseHandler() = default;
 
-    void handle(vq::core::Event& event) override {
-        if (auto p_casted = dynamic_cast<vq::io::KeyEvent*>(&event)) {
-            if (p_casted->key == 256) { // GLFW_KEY_ESCAPE
-                p_casted->window.close();
-                p_casted->set_handled();
-            }
+    void handle(vq::io::KeyEvent& event) override {
+        if (event.key == 256) {
+            event.window.close();
+            event.set_handled();
         }
     }
 };
