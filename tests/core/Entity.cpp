@@ -46,9 +46,9 @@ TEST(Core_Entity, entity_id_is_correct) {
 
 TEST(Core_Entity, entity_add_component) {
     vq::core::Entity entity("test_entity");
-    ASSERT_NO_THROW(entity.add_component<MockComponent1>());
-    ASSERT_NO_THROW(entity.add_component<MockComponent2>());
-    ASSERT_THROW(entity.add_component<MockComponent1>(), std::runtime_error);
+    ASSERT_TRUE(entity.add_component<MockComponent1>());
+    ASSERT_TRUE(entity.add_component<MockComponent2>());
+    ASSERT_FALSE(entity.add_component<MockComponent1>());
 }
 
 /*----------------------------------------------------------------------------*/
@@ -56,13 +56,10 @@ TEST(Core_Entity, entity_add_component) {
 TEST(Core_Entity, entity_get_component) {
     vq::core::Entity entity("test_entity");
     entity.add_component<MockComponent1>();
-
-    auto* component1 = entity.get_component<MockComponent1>();
-    ASSERT_NE(component1, nullptr);
-
-    ASSERT_NO_THROW(entity.get_component<MockComponent2>());
-    auto* component2 = entity.get_component<MockComponent2>();
-    ASSERT_EQ(component2, nullptr);
+    auto component_1 = entity.get_component<MockComponent1>();
+    ASSERT_FALSE(component_1.expired());
+    auto component_2 = entity.get_component<MockComponent2>();
+    ASSERT_TRUE(component_2.expired());
 }
 
 /*----------------------------------------------------------------------------*/
@@ -70,14 +67,11 @@ TEST(Core_Entity, entity_get_component) {
 TEST(Core_Entity, entity_remove_component) {
     vq::core::Entity entity("test_entity");
     entity.add_component<MockComponent1>();
-
-    auto* component1 = entity.remove_component<MockComponent1>();
-    ASSERT_NE(component1, nullptr);
-    ASSERT_EQ(entity.get_component<MockComponent1>(), nullptr);
-
-    ASSERT_NO_THROW(entity.remove_component<MockComponent2>());
-    auto* component2 = entity.remove_component<MockComponent2>();
-    ASSERT_EQ(component2, nullptr);
+    auto component_1 = entity.get_component<MockComponent1>();
+    ASSERT_FALSE(component_1.expired());
+    ASSERT_TRUE(entity.remove_component<MockComponent1>());
+    ASSERT_TRUE(component_1.expired());
+    ASSERT_FALSE(entity.remove_component<MockComponent2>());
 }
 
 /*----------------------------------------------------------------------------*/
@@ -86,11 +80,13 @@ TEST(Core_Entity, entity_render_called_for_all_components) {
     vq::core::Entity entity("test_entity");
     entity.add_component<MockComponent1>();
     entity.add_component<MockComponent2>();
-    ASSERT_FALSE(entity.get_component<MockComponent1>()->render_called());
-    ASSERT_FALSE(entity.get_component<MockComponent2>()->render_called());
+    ASSERT_FALSE(
+        entity.get_component<MockComponent1>().lock()->render_called());
+    ASSERT_FALSE(
+        entity.get_component<MockComponent2>().lock()->render_called());
     entity.render();
-    ASSERT_TRUE(entity.get_component<MockComponent1>()->render_called());
-    ASSERT_TRUE(entity.get_component<MockComponent2>()->render_called());
+    ASSERT_TRUE(entity.get_component<MockComponent1>().lock()->render_called());
+    ASSERT_TRUE(entity.get_component<MockComponent2>().lock()->render_called());
 }
 
 /*----------------------------------------------------------------------------*/
@@ -99,11 +95,13 @@ TEST(Core_Entity, entity_update_called_for_all_components) {
     vq::core::Entity entity("test_entity");
     entity.add_component<MockComponent1>();
     entity.add_component<MockComponent2>();
-    ASSERT_FALSE(entity.get_component<MockComponent1>()->update_called());
-    ASSERT_FALSE(entity.get_component<MockComponent2>()->update_called());
+    ASSERT_FALSE(
+        entity.get_component<MockComponent1>().lock()->update_called());
+    ASSERT_FALSE(
+        entity.get_component<MockComponent2>().lock()->update_called());
     entity.update(0.0);
-    ASSERT_TRUE(entity.get_component<MockComponent1>()->update_called());
-    ASSERT_TRUE(entity.get_component<MockComponent2>()->update_called());
+    ASSERT_TRUE(entity.get_component<MockComponent1>().lock()->update_called());
+    ASSERT_TRUE(entity.get_component<MockComponent2>().lock()->update_called());
 }
 
 /*----------------------------------------------------------------------------*/

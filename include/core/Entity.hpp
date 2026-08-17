@@ -2,6 +2,7 @@
 
 #include "Component.hpp"
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -17,59 +18,61 @@ class Entity {
 
     inline const std::string& get_id() const { return m_id; }
 
-    template <typename T, typename... Args>
-    void add_component(Args&&... args);
+    template <typename ComponentType, typename... Args>
+    bool add_component(Args&&... args);
 
-    template <typename T>
-    T* get_component();
+    template <typename ComponentType>
+    std::weak_ptr<ComponentType> get_component();
 
-    template <typename T>
-    T* remove_component();
+    template <typename ComponentType>
+    bool remove_component();
 
     void render();
     void update(double delta_time);
 
   private:
     const std::string m_id;
-    std::unordered_map<size_t, Component*> m_components;
+    std::unordered_map<size_t, std::shared_ptr<Component>> m_components;
 };
 
 /*----------------------------------------------------------------------------*/
 
-template <typename T, typename... Args>
-void Entity::add_component(Args&&... args) {
-    static_assert(std::is_base_of_v<Component, T>,
+template <typename ComponentType, typename... Args>
+bool Entity::add_component(Args&&... args) {
+    static_assert(std::is_base_of_v<Component, ComponentType>,
                   "T must derive from vq::core::Component class");
-    auto component_id = m_components.find(Component::get_type_id<T>());
-    if (component_id != m_components.end()) {
-        throw std::runtime_error("Tried to insert a duplicate component to "
-                                 "an entity " +
-                                 m_id + " during a call to " + __FUNCTION__);
+    auto component_it =
+        m_components.find(Component::get_type_id<ComponentType>());
+    if (component_it != m_components.end()) {
+        return false;
     }
-    m_components[Component::get_type_id<T>()] = new T(*this, args...);
+    m_components[Component::get_type_id<ComponentType>()] =
+        std::make_shared<ComponentType>(*this, args...);
+    return true;
 }
 
-template <typename T>
-T* Entity::get_component() {
-    static_assert(std::is_base_of_v<Component, T>,
+template <typename ComponentType>
+std::weak_ptr<ComponentType> Entity::get_component() {
+    static_assert(std::is_base_of_v<Component, ComponentType>,
                   "T must derive from vq::core::Component class");
-    auto component_it = m_components.find(Component::get_type_id<T>());
+    auto component_it =
+        m_components.find(Component::get_type_id<ComponentType>());
     return component_it != m_components.end()
-               ? static_cast<T*>(component_it->second)
+               ? std::dynamic_pointer_cast<ComponentType>(component_it->second)
                : nullptr;
 }
 
-template <typename T>
-T* Entity::remove_component() {
-    static_assert(std::is_base_of_v<Component, T>,
+template <typename ComponentType>
+bool Entity::remove_component() {
+    static_assert(std::is_base_of_v<Component, ComponentType>,
                   "T must derive from vq::core::Component class");
-    auto component_it = m_components.find(Component::get_type_id<T>());
-    T* component      = nullptr;
-    if (component_it != m_components.end()) {
-        component = static_cast<T*>(component_it->second);
-        m_components.erase(component_it);
+    auto component_it =
+        m_components.find(Component::get_type_id<ComponentType>());
+    if (component_it == m_components.end()) {
+        return false;
     }
-    return component;
+    m_components.erase(component_it);
+    return true;
 }
 
 /*----------------------------------------------------------------------------*/
