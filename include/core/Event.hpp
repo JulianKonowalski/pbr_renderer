@@ -178,7 +178,7 @@ template <typename EventType>
 bool EventEmitter<EventTypes...>::attach_event_handler(
     EventHandlerBase<EventType>& event_handler) {
     static_assert((std::is_same_v<EventType, EventTypes> || ...),
-                  "EventType mus be one of the allowed EventTypes");
+                  "EventType must be one of the allowed EventTypes");
     return EventEmitterBase<EventType>::attach_event_handler(event_handler);
 }
 
@@ -187,7 +187,7 @@ template <typename EventType>
 bool EventEmitter<EventTypes...>::detach_event_handler(
     EventHandlerBase<EventType>& event_handler) {
     static_assert((std::is_same_v<EventType, EventTypes> || ...),
-                  "EventType mus be one of the allowed EventTypes");
+                  "EventType must be one of the allowed EventTypes");
     return EventEmitterBase<EventType>::detach_event_handler(event_handler);
 }
 
@@ -195,7 +195,7 @@ template <typename... EventTypes>
 template <typename EventType, typename... Args>
 void EventEmitter<EventTypes...>::emit_event(Args&&... args) {
     static_assert((std::is_same_v<EventType, EventTypes> || ...),
-                  "EventType mus be one of the allowed EventTypes");
+                  "EventType must be one of the allowed EventTypes");
     EventType event(args...);
     EventEmitterBase<EventType>::emit_event(event);
 }
