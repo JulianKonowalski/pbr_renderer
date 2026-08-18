@@ -10,7 +10,7 @@ namespace vq::core {
 
 class Resource {
   public:
-    explicit Resource(const std::string& id, const std::string& asset_path);
+    explicit Resource(const std::string& id);
     virtual ~Resource() = default;
 
     Resource(Resource&& other);
@@ -25,7 +25,6 @@ class Resource {
     }
 
     inline const std::string& get_id() const { return m_id; }
-    inline const std::string& get_asset_path() const { return m_asset_path; }
     inline bool is_loaded() const { return m_is_loaded; }
 
     bool load();
@@ -39,7 +38,6 @@ class Resource {
 
   private:
     std::string m_id;
-    std::string m_asset_path;
     bool m_is_loaded;
 };
 

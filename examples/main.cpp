@@ -1,8 +1,6 @@
-#include <array>
 #include <core/Event.hpp>
 #include <core/ResourceManager.hpp>
 #include <glad/glad.h>
-#include <graphics/core/Program.hpp>
 #include <graphics/core/Shader.hpp>
 #include <io/Window.hpp>
 
@@ -12,75 +10,28 @@ static const std::string s_base_resource_path = RESOURCE_PATH;
 
 /*----------------------------------------------------------------------------*/
 
-static const std::array<float, 12> s_plane_vertices = {
-    -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f};
-static const std::array<float, 12> s_plane_normals = {
-    0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
-static const std::array<float, 8> s_plane_texture_coordinates = {
-    0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
-static const std::array<unsigned int, 12> s_plane_indices = {0, 1, 2, 0, 2, 3};
-
-void create_geometry(unsigned int& VAO, unsigned int& IBO,
-                     std::array<unsigned int, 3>& buffers) {
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(3, buffers.data());
-
-    // positions
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * s_plane_vertices.size(),
-                 s_plane_vertices.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
-
-    // normals
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * s_plane_normals.size(),
-                 s_plane_normals.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
-
-    // texture coordinates
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[2]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(float) * s_plane_texture_coordinates.size(),
-                 s_plane_texture_coordinates.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, nullptr);
-
-    glGenBuffers(1, &IBO);
-
-    // indices
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(unsigned int) * s_plane_indices.size(),
-                 s_plane_indices.data(), GL_STATIC_DRAW);
-
-    // unbind all
-    glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
-    glBindVertexArray(GL_NONE);
-}
-
-void cleanup_geometry(unsigned int& VAO, unsigned int IBO,
-                      std::array<unsigned int, 3>& buffers) {
-    glDeleteBuffers(3, buffers.data());
-    glDeleteBuffers(1, &IBO);
-    glDeleteVertexArrays(1, &VAO);
-}
-
-/*----------------------------------------------------------------------------*/
-
 class WindowCloseHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
   public:
-    WindowCloseHandler()  = default;
-    ~WindowCloseHandler() = default;
-
     void handle(vq::io::KeyEvent& event) noexcept override {
-        if (event.key == 256) {
+        if (event.key == 256) { // GLFW KEY ESC
             event.window.close();
             event.set_handled();
+        }
+    }
+};
+
+class ShaderReloadHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
+  public:
+    void handle(vq::io::KeyEvent& event) noexcept override {
+        if (event.key == 82) { // GLFW KEY R
+            auto& resource_manager = vq::core::ResourceManager::get_instance();
+            auto shader_handle =
+                resource_manager.get_resource<vq::graphics::core::Shader>(
+                    "test_shader");
+            if (shader_handle.is_valid()) {
+                shader_handle.get().reload();
+                event.set_handled();
+            }
         }
     }
 };
@@ -90,58 +41,39 @@ class WindowCloseHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
 int main(void) {
     vq::io::Window window(vq::io::Window::WindowSpecification("VQ Example"));
     WindowCloseHandler close_handler;
+    ShaderReloadHandler shader_reload_handler;
 
     window.make_current();
     window.attach_event_handler(close_handler);
+    window.attach_event_handler(shader_reload_handler);
 
-    vq::core::ResourceManager& resource_manager =
-        vq::core::ResourceManager::get_instance();
-
+    auto& resource_manager = vq::core::ResourceManager::get_instance();
     resource_manager.load_resource<vq::graphics::core::Shader>(
-        "vertex_shader", s_base_resource_path + "shaders/passthrough.vert.glsl",
-        vq::graphics::core::Shader::ShaderType::VERTEX);
-    resource_manager.load_resource<vq::graphics::core::Shader>(
-        "fragment_shader",
-        s_base_resource_path + "shaders/passthrough.frag.glsl",
-        vq::graphics::core::Shader::ShaderType::FRAGMENT);
+        "test_shader",
+        std::vector<vq::graphics::core::Shader::ShaderSourceFile>({
+            {s_base_resource_path + "shaders/passthrough.vert.glsl",
+             vq::graphics::core::Shader::ShaderSourceType::VERTEX},
+            {s_base_resource_path + "shaders/passthrough.frag.glsl",
+             vq::graphics::core::Shader::ShaderSourceType::FRAGMENT},
+        }));
 
-    vq::core::ResourceHandle<vq::graphics::core::Shader> vertex_shader_handle =
+    auto shader_handle =
         resource_manager.get_resource<vq::graphics::core::Shader>(
-            "vertex_shader");
-    vq::core::ResourceHandle<vq::graphics::core::Shader>
-        fragment_shader_handle =
-            resource_manager.get_resource<vq::graphics::core::Shader>(
-                "fragment_shader");
+            "test_shader");
 
-    resource_manager.load_resource<vq::graphics::core::Program>(
-        "program",
-        std::vector<vq::graphics::core::Shader*>(
-            {&(vertex_shader_handle.get()), &(fragment_shader_handle.get())}));
-
-    vq::core::ResourceHandle<vq::graphics::core::Program> program_handle =
-        resource_manager.get_resource<vq::graphics::core::Program>("program");
-
-    unsigned int VAO = 0;
-    unsigned int IBO = 0;
-    std::array<unsigned int, 3> buffers;
-    create_geometry(VAO, IBO, buffers);
+    unsigned int vao;
+    glCreateVertexArrays(1, &vao);
 
     while (!window.should_close()) {
         window.update();
+        shader_handle.get().bind();
 
-        program_handle.get().bind();
-
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-        glDrawElements(GL_TRIANGLES, s_plane_indices.size(), GL_UNSIGNED_INT,
-                       nullptr);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glBindVertexArray(GL_NONE);
 
-        program_handle.get().unbind();
+        shader_handle.get().unbind();
     }
-
-    cleanup_geometry(VAO, IBO, buffers);
 }
 
 /*----------------------------------------------------------------------------*/

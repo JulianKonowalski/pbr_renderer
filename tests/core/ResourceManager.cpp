@@ -9,10 +9,10 @@ namespace vq::tests::core::ResourceManager {
 class MockResourceEmpty : public vq::core::Resource {
   public:
     explicit MockResourceEmpty(const std::string& id)
-        : vq::core::Resource(id, "") {}
+        : vq::core::Resource(id) {}
     ~MockResourceEmpty() override = default;
 
-    MockResourceEmpty(MockResourceEmpty&& other) : vq::core::Resource("", "") {
+    MockResourceEmpty(MockResourceEmpty&& other) : vq::core::Resource("") {
         *this = std::move(other);
     }
 
@@ -31,11 +31,11 @@ class MockResourceWithTestValue : public vq::core::Resource {
   public:
     explicit MockResourceWithTestValue(const std::string& id,
                                        const int test_value)
-        : vq::core::Resource(id, ""), m_test_value(test_value) {}
+        : vq::core::Resource(id), m_test_value(test_value) {}
     ~MockResourceWithTestValue() override = default;
 
     MockResourceWithTestValue(MockResourceWithTestValue&& other)
-        : vq::core::Resource("", "") {
+        : vq::core::Resource("") {
         *this = std::move(other);
     }
 

@@ -3,78 +3,100 @@
 #include "io/FileReader.hpp"
 
 #include <glad/glad.h>
-#include <stdexcept>
+#include <iostream>
 
 using namespace vq::graphics::core;
 
 /*----------------------------------------------------------------------------*/
 
-Shader::Shader(const std::string& id, const std::string& asset_path,
-               const ShaderType shader_type)
-    : vq::core::Resource(id, asset_path), m_shader_id(0) {
-    switch (shader_type) {
-    case ShaderType::VERTEX:
-        m_shader_id = glCreateShader(GL_VERTEX_SHADER);
-        break;
-    case ShaderType::FRAGMENT:
-        m_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
-        break;
+static constexpr unsigned int k_max_info_log_length = 512;
+
+/*----------------------------------------------------------------------------*/
+
+bool create_gl_shader(unsigned int& gl_shader_id,
+                      const Shader::ShaderSourceFile& source_file) noexcept;
+
+bool load_and_compile_gl_shader(
+    const unsigned int gl_shader_id,
+    const Shader::ShaderSourceFile& source_file) noexcept;
+
+bool link_gl_program(const unsigned int gl_program_id,
+                     const std::vector<unsigned int>& gl_shader_ids) noexcept;
+
+/*----------------------------------------------------------------------------*/
+
+unsigned int Shader::s_current_shader = GL_NONE;
+
+/*----------------------------------------------------------------------------*/
+
+Shader::Shader(const std::string& id,
+               std::vector<ShaderSourceFile>& source_files)
+    : vq::core::Resource(id), m_source_files(std::move(source_files)),
+      m_shader_id(0) {}
+
+/*----------------------------------------------------------------------------*/
+
+Shader::~Shader() {
+    this->unbind();
+    glDeleteProgram(m_shader_id);
+}
+
+/*----------------------------------------------------------------------------*/
+
+void Shader::unbind_all() {
+    glUseProgram(GL_NONE);
+    Shader::s_current_shader = GL_NONE;
+}
+
+/*----------------------------------------------------------------------------*/
+
+void Shader::bind() {
+    glUseProgram(m_shader_id);
+    Shader::s_current_shader = m_shader_id;
+}
+
+/*----------------------------------------------------------------------------*/
+
+void Shader::unbind() {
+    if (Shader::s_current_shader == m_shader_id) {
+        glUseProgram(GL_NONE);
+        Shader::s_current_shader = GL_NONE;
     }
-    if (!m_shader_id) {
-        throw std::runtime_error("Failed to create shader " + id +
-                                 " during a call to " + __FUNCTION__);
-    }
 }
 
 /*----------------------------------------------------------------------------*/
-
-Shader::~Shader() { glDeleteShader(m_shader_id); }
-
-/*----------------------------------------------------------------------------*/
-
-Shader::Shader(Shader&& other) : vq::core::Resource("", "") {
-    *this = std::move(other);
-}
-
-/*----------------------------------------------------------------------------*/
-
-Shader& Shader::operator=(Shader&& other) {
-    m_shader_id       = other.m_shader_id;
-    other.m_shader_id = 0;
-    vq::core::Resource::operator=(std::move(other));
-    return *this;
-}
-
-/*----------------------------------------------------------------------------*/
-
-#include <iostream>
 
 bool Shader::do_load() noexcept {
-    std::string source;
-    vq::io::GLSLReader().read(source, this->get_asset_path());
+    std::vector<unsigned int> gl_shader_ids(m_source_files.size(), 0);
 
-    if (source.length() <= 0) {
-        /** TODO: Create a logging interface */
-        std::cout << "Failed to load shader source file: "
-                  << this->get_asset_path() << std::endl;
+    auto cleanup = [&]() {
+        glDeleteProgram(m_shader_id);
+        for (auto gl_shader_id : gl_shader_ids) {
+            glDeleteShader(gl_shader_id);
+        }
+    };
+
+    for (int i = 0; i < m_source_files.size(); ++i) {
+        if (!create_gl_shader(gl_shader_ids[i], m_source_files[i]) ||
+            !load_and_compile_gl_shader(gl_shader_ids[i], m_source_files[i])) {
+            cleanup();
+            return false;
+        }
+    }
+
+    m_shader_id = glCreateProgram();
+    if (!m_shader_id) {
+        std::cout << "Failed to create an OpenGL program\n";
+        cleanup();
         return false;
     }
 
-    const char* source_string = source.c_str();
+    for (auto gl_shader_id : gl_shader_ids) {
+        glAttachShader(m_shader_id, gl_shader_id);
+    }
 
-    glShaderSource(m_shader_id, 1, &source_string, nullptr);
-    glCompileShader(m_shader_id);
-
-    int success;
-    glGetShaderiv(m_shader_id, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char info_log[512];
-        glGetShaderInfoLog(m_shader_id, 512, nullptr, info_log);
-
-        /** TODO: Create a logging interface */
-        std::cout << "Failed to compile shader " << this->get_id() << ":\n"
-                  << info_log << std::endl;
-
+    if (!link_gl_program(m_shader_id, gl_shader_ids)) {
+        cleanup();
         return false;
     }
 
@@ -83,10 +105,95 @@ bool Shader::do_load() noexcept {
 
 /*----------------------------------------------------------------------------*/
 
-bool Shader::do_reload() noexcept { return false; }
+bool Shader::do_reload() noexcept {
+    int num_attached_shaders;
+    glGetProgramiv(m_shader_id, GL_ATTACHED_SHADERS, &num_attached_shaders);
+    std::vector<unsigned int> gl_shader_ids(num_attached_shaders, 0);
+    glGetAttachedShaders(m_shader_id, num_attached_shaders, nullptr,
+                         gl_shader_ids.data());
+
+    for (int i = 0; i < m_source_files.size(); ++i) {
+        if (!load_and_compile_gl_shader(gl_shader_ids[i], m_source_files[i])) {
+            return false;
+        }
+    }
+
+    if (!link_gl_program(m_shader_id, gl_shader_ids)) {
+        return false;
+    }
+
+    return false;
+}
 
 /*----------------------------------------------------------------------------*/
 
 void Shader::do_unload() noexcept {}
+
+/*----------------------------------------------------------------------------*/
+
+bool create_gl_shader(unsigned int& gl_shader_id,
+                      const Shader::ShaderSourceFile& source_file) noexcept {
+    gl_shader_id = 0;
+    switch (source_file.type) {
+    case Shader::ShaderSourceType::VERTEX:
+        gl_shader_id = glCreateShader(GL_VERTEX_SHADER);
+        break;
+    case Shader::ShaderSourceType::FRAGMENT:
+        gl_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
+        break;
+    }
+    if (!gl_shader_id) {
+        std::cout << "Failed to create an OpenGL shader\n";
+        return false;
+    }
+    return true;
+}
+
+bool load_and_compile_gl_shader(
+    const unsigned int gl_shader_id,
+    const Shader::ShaderSourceFile& source_file) noexcept {
+    std::string source_code;
+    vq::io::GLSLReader().read(source_code, source_file.source_file_path);
+    if (source_code.length() <= 0) {
+        std::cout << "Failed to read a shader source file: "
+                  << source_file.source_file_path << "\n";
+        return false;
+    }
+
+    int success;
+    const char* source_code_cstring = source_code.c_str();
+    glShaderSource(gl_shader_id, 1, &source_code_cstring, nullptr);
+    glCompileShader(gl_shader_id);
+    glGetShaderiv(gl_shader_id, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char info_log[k_max_info_log_length];
+        glGetShaderInfoLog(gl_shader_id, k_max_info_log_length, nullptr,
+                           info_log);
+        std::cout << "Failed to compile shader source file "
+                  << source_file.source_file_path
+                  << "\nCompilation finished with errors:\n"
+                  << info_log << "\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool link_gl_program(const unsigned int gl_program_id,
+                     const std::vector<unsigned int>& gl_shader_ids) noexcept {
+    int success;
+    glLinkProgram(gl_program_id);
+    glGetProgramiv(gl_program_id, GL_LINK_STATUS, &success);
+    if (!success) {
+        char info_log[k_max_info_log_length];
+        glGetShaderInfoLog(gl_program_id, k_max_info_log_length, nullptr,
+                           info_log);
+        std::cout << "Failed to link shaders. Linking finished with errors:\n"
+                  << info_log << "\n";
+        return false;
+    }
+
+    return true;
+}
 
 /*----------------------------------------------------------------------------*/
