@@ -14,3 +14,4 @@ AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeConceptDeclarations: Always
 RequiresClausePosition: OwnLine
 FixNamespaceComments: true
+InsertNewlineAtEOF: true
