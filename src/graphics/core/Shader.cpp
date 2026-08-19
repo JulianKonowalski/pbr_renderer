@@ -23,6 +23,12 @@ bool load_and_compile_gl_shader(
 bool link_gl_program(const unsigned int gl_program_id,
                      const std::vector<unsigned int>& gl_shader_ids) noexcept;
 
+void get_attached_gl_shaders(const unsigned int gl_program_id,
+                             std::vector<unsigned int>& gl_shader_ids) noexcept;
+
+void cleanup_gl_shaders(unsigned int& gl_program_id,
+                        std::vector<unsigned int>& gl_shader_ids) noexcept;
+
 /*----------------------------------------------------------------------------*/
 
 unsigned int Shader::s_current_shader = GL_NONE;
@@ -62,19 +68,10 @@ void Shader::unbind() {
 bool Shader::do_load() noexcept {
     std::vector<unsigned int> gl_shader_ids(m_source_files.size(), 0);
 
-    auto cleanup = [&]() {
-        glDeleteProgram(m_shader_id);
-        m_shader_id = 0;
-        for (auto& gl_shader_id : gl_shader_ids) {
-            glDeleteShader(gl_shader_id);
-            gl_shader_id = 0;
-        }
-    };
-
     for (int i = 0; i < m_source_files.size(); ++i) {
         if (!create_gl_shader(gl_shader_ids[i], m_source_files[i]) ||
             !load_and_compile_gl_shader(gl_shader_ids[i], m_source_files[i])) {
-            cleanup();
+            cleanup_gl_shaders(m_shader_id, gl_shader_ids);
             return false;
         }
     }
@@ -82,7 +79,7 @@ bool Shader::do_load() noexcept {
     m_shader_id = glCreateProgram();
     if (!m_shader_id) {
         std::cout << "Failed to create an OpenGL program\n";
-        cleanup();
+        cleanup_gl_shaders(m_shader_id, gl_shader_ids);
         return false;
     }
 
@@ -91,7 +88,7 @@ bool Shader::do_load() noexcept {
     }
 
     if (!link_gl_program(m_shader_id, gl_shader_ids)) {
-        cleanup();
+        cleanup_gl_shaders(m_shader_id, gl_shader_ids);
         return false;
     }
 
@@ -101,12 +98,8 @@ bool Shader::do_load() noexcept {
 /*----------------------------------------------------------------------------*/
 
 bool Shader::do_reload() noexcept {
-    int num_attached_shaders;
-    glGetProgramiv(m_shader_id, GL_ATTACHED_SHADERS, &num_attached_shaders);
-
-    std::vector<unsigned int> gl_shader_ids(num_attached_shaders, 0);
-    glGetAttachedShaders(m_shader_id, num_attached_shaders, nullptr,
-                         gl_shader_ids.data());
+    std::vector<unsigned int> gl_shader_ids;
+    get_attached_gl_shaders(m_shader_id, gl_shader_ids);
 
     for (int i = 0; i < m_source_files.size(); ++i) {
         if (!load_and_compile_gl_shader(gl_shader_ids[i], m_source_files[i])) {
@@ -124,20 +117,11 @@ bool Shader::do_reload() noexcept {
 /*----------------------------------------------------------------------------*/
 
 void Shader::do_unload() noexcept {
-    int num_attached_shaders;
-    glGetProgramiv(m_shader_id, GL_ATTACHED_SHADERS, &num_attached_shaders);
-
-    std::vector<unsigned int> gl_shader_ids(num_attached_shaders, 0);
-    glGetAttachedShaders(m_shader_id, num_attached_shaders, nullptr,
-                         gl_shader_ids.data());
+    std::vector<unsigned int> gl_shader_ids;
+    get_attached_gl_shaders(m_shader_id, gl_shader_ids);
 
     this->unbind();
-    glDeleteProgram(m_shader_id);
-    m_shader_id = 0;
-    for (auto& gl_shader_id : gl_shader_ids) {
-        glDeleteShader(gl_shader_id);
-        gl_shader_id = 0;
-    }
+    cleanup_gl_shaders(m_shader_id, gl_shader_ids);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -203,8 +187,27 @@ bool link_gl_program(const unsigned int gl_program_id,
                   << info_log << "\n";
         return false;
     }
-
     return true;
+}
+
+void get_attached_gl_shaders(
+    const unsigned int gl_program_id,
+    std::vector<unsigned int>& gl_shader_ids) noexcept {
+    int num_attached_shaders;
+    glGetProgramiv(gl_program_id, GL_ATTACHED_SHADERS, &num_attached_shaders);
+    gl_shader_ids.resize(num_attached_shaders);
+    glGetAttachedShaders(gl_program_id, num_attached_shaders, nullptr,
+                         gl_shader_ids.data());
+}
+
+void cleanup_gl_shaders(unsigned int& gl_program_id,
+                        std::vector<unsigned int>& gl_shader_ids) noexcept {
+    glDeleteProgram(gl_program_id);
+    gl_program_id = 0;
+    for (auto& gl_shader_id : gl_shader_ids) {
+        glDeleteShader(gl_shader_id);
+        gl_shader_id = 0;
+    }
 }
 
 /*----------------------------------------------------------------------------*/
