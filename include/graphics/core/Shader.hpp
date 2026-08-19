@@ -21,7 +21,7 @@ class Shader final : public vq::core::Resource {
 
     explicit Shader(const std::string& id,
                     std::vector<ShaderSourceFile>& source_files);
-    ~Shader() override;
+    ~Shader() override = default;
 
     Shader(Shader&& other);
     Shader& operator=(Shader&& other);

@@ -36,13 +36,6 @@ Shader::Shader(const std::string& id,
 
 /*----------------------------------------------------------------------------*/
 
-Shader::~Shader() {
-    this->unbind();
-    glDeleteProgram(m_shader_id);
-}
-
-/*----------------------------------------------------------------------------*/
-
 void Shader::unbind_all() {
     glUseProgram(GL_NONE);
     Shader::s_current_shader = GL_NONE;
@@ -71,8 +64,10 @@ bool Shader::do_load() noexcept {
 
     auto cleanup = [&]() {
         glDeleteProgram(m_shader_id);
-        for (auto gl_shader_id : gl_shader_ids) {
+        m_shader_id = 0;
+        for (auto& gl_shader_id : gl_shader_ids) {
             glDeleteShader(gl_shader_id);
+            gl_shader_id = 0;
         }
     };
 
@@ -108,6 +103,7 @@ bool Shader::do_load() noexcept {
 bool Shader::do_reload() noexcept {
     int num_attached_shaders;
     glGetProgramiv(m_shader_id, GL_ATTACHED_SHADERS, &num_attached_shaders);
+
     std::vector<unsigned int> gl_shader_ids(num_attached_shaders, 0);
     glGetAttachedShaders(m_shader_id, num_attached_shaders, nullptr,
                          gl_shader_ids.data());
@@ -127,7 +123,22 @@ bool Shader::do_reload() noexcept {
 
 /*----------------------------------------------------------------------------*/
 
-void Shader::do_unload() noexcept {}
+void Shader::do_unload() noexcept {
+    int num_attached_shaders;
+    glGetProgramiv(m_shader_id, GL_ATTACHED_SHADERS, &num_attached_shaders);
+
+    std::vector<unsigned int> gl_shader_ids(num_attached_shaders, 0);
+    glGetAttachedShaders(m_shader_id, num_attached_shaders, nullptr,
+                         gl_shader_ids.data());
+
+    this->unbind();
+    glDeleteProgram(m_shader_id);
+    m_shader_id = 0;
+    for (auto& gl_shader_id : gl_shader_ids) {
+        glDeleteShader(gl_shader_id);
+        gl_shader_id = 0;
+    }
+}
 
 /*----------------------------------------------------------------------------*/
 
