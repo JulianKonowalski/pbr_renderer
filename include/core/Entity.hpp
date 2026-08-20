@@ -16,14 +16,12 @@ class Entity {
     explicit Entity(const std::string& id);
     ~Entity() = default;
 
-    inline const std::string& get_id() const { return m_id; }
+    inline const std::string& get_id() const;
 
     template <typename ComponentType, typename... Args>
     bool add_component(Args&&... args);
-
     template <typename ComponentType>
     std::weak_ptr<ComponentType> get_component();
-
     template <typename ComponentType>
     bool remove_component();
 
@@ -36,6 +34,8 @@ class Entity {
 };
 
 /*----------------------------------------------------------------------------*/
+
+inline const std::string& Entity::get_id() const { return m_id; }
 
 template <typename ComponentType, typename... Args>
 bool Entity::add_component(Args&&... args) {

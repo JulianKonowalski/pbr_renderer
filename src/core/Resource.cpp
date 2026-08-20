@@ -40,3 +40,10 @@ void Resource::unload() {
 }
 
 /*----------------------------------------------------------------------------*/
+
+ResourceManager& ResourceManager::get_instance() {
+    static ResourceManager resource_manager;
+    return resource_manager;
+}
+
+/*----------------------------------------------------------------------------*/

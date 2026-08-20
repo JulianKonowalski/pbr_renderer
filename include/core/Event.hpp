@@ -17,8 +17,8 @@ class EventBase {
     EventBase() : m_is_handled(false) {}
     ~EventBase() = default;
 
-    inline bool is_handled() const { return m_is_handled; }
-    inline void set_handled() { m_is_handled = true; }
+    inline bool is_handled() const;
+    inline void set_handled();
 
   private:
     bool m_is_handled;
@@ -75,7 +75,6 @@ class EventEmitter : private EventEmitterBase<EventTypes>... {
   public:
     template <typename EventType>
     bool attach_event_handler(EventHandlerBase<EventType>& event_handler);
-
     template <typename EventType>
     bool detach_event_handler(EventHandlerBase<EventType>& event_handler);
 
@@ -88,6 +87,12 @@ class EventEmitter : private EventEmitterBase<EventTypes>... {
 
 template <typename... EventTypes>
 class EventHandler : public EventHandlerBase<EventTypes>... {};
+
+/*----------------------------------------------------------------------------*/
+
+inline bool EventBase::is_handled() const { return m_is_handled; }
+
+inline void EventBase::set_handled() { m_is_handled = true; }
 
 /*----------------------------------------------------------------------------*/
 

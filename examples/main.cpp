@@ -1,5 +1,5 @@
 #include <core/Event.hpp>
-#include <core/ResourceManager.hpp>
+#include <core/Resource.hpp>
 #include <glad/glad.h>
 #include <graphics/core/Geometry.hpp>
 #include <graphics/core/Shader.hpp>
