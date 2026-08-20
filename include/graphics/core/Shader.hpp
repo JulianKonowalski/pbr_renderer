@@ -37,8 +37,6 @@ class Shader final : public vq::core::Resource {
     virtual void do_unload() noexcept override;
 
   private:
-    static unsigned int s_current_shader;
-
     std::vector<ShaderSourceFile> m_source_files;
     unsigned int m_shader_id;
 };

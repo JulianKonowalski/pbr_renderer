@@ -1,6 +1,7 @@
 #include <core/Event.hpp>
 #include <core/ResourceManager.hpp>
 #include <glad/glad.h>
+#include <graphics/core/Geometry.hpp>
 #include <graphics/core/Shader.hpp>
 #include <io/Window.hpp>
 
@@ -48,6 +49,8 @@ int main(void) {
     window.attach_event_handler(shader_reload_handler);
 
     auto& resource_manager = vq::core::ResourceManager::get_instance();
+    resource_manager.load_resource<vq::graphics::core::Geometry>(
+        "test_geometry");
     resource_manager.load_resource<vq::graphics::core::Shader>(
         "test_shader",
         std::vector<vq::graphics::core::Shader::ShaderSourceFile>({
@@ -57,22 +60,39 @@ int main(void) {
              vq::graphics::core::Shader::ShaderSourceType::FRAGMENT},
         }));
 
+    auto geometry_handle =
+        resource_manager.get_resource<vq::graphics::core::Geometry>(
+            "test_geometry");
     auto shader_handle =
         resource_manager.get_resource<vq::graphics::core::Shader>(
             "test_shader");
+
+    geometry_handle.get()
+        .set_attribute<vq::graphics::core::Geometry::Attribute::POSITION>(
+            {-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0});
+    geometry_handle.get()
+        .set_attribute<vq::graphics::core::Geometry::Attribute::NORMAL>(
+            {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0});
+    geometry_handle.get()
+        .set_attribute<
+            vq::graphics::core::Geometry::Attribute::TEXTURE_COORDINATE>(
+            {0.0, 0.0, 1.0, 0.0, 0.5, 1.0});
+
+    geometry_handle.get().set_indices({0, 1, 2});
 
     unsigned int vao;
     glCreateVertexArrays(1, &vao);
 
     while (!window.should_close()) {
         window.update();
+
         shader_handle.get().bind();
+        geometry_handle.get().bind();
 
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glBindVertexArray(GL_NONE);
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
-        shader_handle.get().unbind();
+        vq::graphics::core::Geometry::unbind_all();
+        vq::graphics::core::Shader::unbind_all();
     }
 }
 

@@ -31,10 +31,6 @@ void cleanup_gl_shaders(unsigned int& gl_program_id,
 
 /*----------------------------------------------------------------------------*/
 
-unsigned int Shader::s_current_shader = GL_NONE;
-
-/*----------------------------------------------------------------------------*/
-
 Shader::Shader(const std::string& id,
                std::vector<ShaderSourceFile>& source_files)
     : vq::core::Resource(id), m_source_files(std::move(source_files)),
@@ -42,25 +38,37 @@ Shader::Shader(const std::string& id,
 
 /*----------------------------------------------------------------------------*/
 
-void Shader::unbind_all() {
-    glUseProgram(GL_NONE);
-    Shader::s_current_shader = GL_NONE;
+Shader::Shader(Shader&& other) : vq::core::Resource("") {
+    *this = std::move(other);
 }
 
 /*----------------------------------------------------------------------------*/
 
-void Shader::bind() {
-    glUseProgram(m_shader_id);
-    Shader::s_current_shader = m_shader_id;
+Shader& Shader::operator=(Shader&& other) {
+    m_source_files    = std::move(other.m_source_files);
+    m_shader_id       = other.m_shader_id;
+    other.m_shader_id = 0;
+    vq::core::Resource::operator=(std::move(other));
+    return *this;
 }
+
+/*----------------------------------------------------------------------------*/
+
+void Shader::unbind_all() { glUseProgram(GL_NONE); }
+
+/*----------------------------------------------------------------------------*/
+
+void Shader::bind() { glUseProgram(m_shader_id); }
 
 /*----------------------------------------------------------------------------*/
 
 void Shader::unbind() {
-    if (Shader::s_current_shader == m_shader_id) {
-        glUseProgram(GL_NONE);
-        Shader::s_current_shader = GL_NONE;
+    int current_gl_program_id;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &current_gl_program_id);
+    if (current_gl_program_id != m_shader_id) {
+        return;
     }
+    glUseProgram(GL_NONE);
 }
 
 /*----------------------------------------------------------------------------*/
