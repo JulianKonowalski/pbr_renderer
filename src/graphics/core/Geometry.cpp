@@ -43,6 +43,26 @@ void Geometry::unbind_all() {
 
 /*----------------------------------------------------------------------------*/
 
+void Geometry::bind() const {
+    glBindVertexArray(m_vertex_array);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_array);
+}
+
+/*----------------------------------------------------------------------------*/
+
+void Geometry::unbind() const {
+    int current_vertex_array;
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vertex_array);
+    if (current_vertex_array != m_vertex_array) {
+        return;
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
+    glBindVertexArray(GL_NONE);
+}
+
+/*----------------------------------------------------------------------------*/
+
 void Geometry::get_indices(std::vector<unsigned int>& data) const {
     int index_buffer_size;
     glGetBufferParameteriv(m_index_array, GL_BUFFER_SIZE, &index_buffer_size);
@@ -62,26 +82,6 @@ void Geometry::set_indices(const std::vector<unsigned int>& data) {
                  data.data(), GL_STATIC_DRAW);
     this->unbind();
     m_indices_size = data.size();
-}
-
-/*----------------------------------------------------------------------------*/
-
-void Geometry::bind() const {
-    glBindVertexArray(m_vertex_array);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_array);
-}
-
-/*----------------------------------------------------------------------------*/
-
-void Geometry::unbind() const {
-    int current_vertex_array;
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vertex_array);
-    if (current_vertex_array != m_vertex_array) {
-        return;
-    }
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
-    glBindVertexArray(GL_NONE);
 }
 
 /*----------------------------------------------------------------------------*/

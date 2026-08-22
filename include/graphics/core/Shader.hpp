@@ -2,6 +2,7 @@
 
 #include "core/Resource.hpp"
 
+#include <array>
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -30,6 +31,10 @@ class Shader final : public vq::core::Resource {
 
     void bind();
     void unbind();
+
+    unsigned int get_uniform_location(const std::string& uniform_id);
+    void set_uniform_mat4(const unsigned int uniform_location,
+                          const std::array<float, 16>& data);
 
   protected:
     virtual bool do_load() noexcept override;

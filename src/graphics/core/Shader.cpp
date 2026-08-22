@@ -73,6 +73,19 @@ void Shader::unbind() {
 
 /*----------------------------------------------------------------------------*/
 
+unsigned int Shader::get_uniform_location(const std::string& uniform_id) {
+    return glGetUniformLocation(m_shader_id, uniform_id.c_str());
+}
+
+/*----------------------------------------------------------------------------*/
+
+void Shader::set_uniform_mat4(const unsigned int uniform_location,
+                              const std::array<float, 16>& data) {
+    glUniformMatrix4fv(uniform_location, 1, GL_FALSE, data.data());
+}
+
+/*----------------------------------------------------------------------------*/
+
 bool Shader::do_load() noexcept {
     std::vector<unsigned int> gl_shader_ids(m_source_files.size(), 0);
 

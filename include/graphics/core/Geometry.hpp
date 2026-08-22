@@ -28,6 +28,9 @@ class Geometry : public vq::core::Resource {
 
     static void unbind_all();
 
+    void bind() const;
+    void unbind() const;
+
     template <Attribute AttributeType>
     inline size_t get_attribute_size() const;
     template <Attribute AttributeType>
@@ -38,9 +41,6 @@ class Geometry : public vq::core::Resource {
     inline size_t get_indices_size() const;
     void get_indices(std::vector<unsigned int>& data) const;
     void set_indices(const std::vector<unsigned int>& data);
-
-    void bind() const;
-    void unbind() const;
 
   protected:
     bool do_load() noexcept override;

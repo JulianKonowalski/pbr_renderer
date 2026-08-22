@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <graphics/core/Geometry.hpp>
 #include <graphics/core/Shader.hpp>
+#include <graphics/core/Transform.hpp>
 #include <io/Window.hpp>
 
 /*----------------------------------------------------------------------------*/
@@ -83,10 +84,22 @@ int main(void) {
     unsigned int vao;
     glCreateVertexArrays(1, &vao);
 
+    unsigned int model_matrix_uniform_location =
+        shader_handle.get().get_uniform_location("u_model_matrix");
+
+    vq::graphics::core::Transform transform;
+
     while (!window.should_close()) {
         window.update();
 
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        transform.rotate_euler_degrees({0.005f, 0.005f, 0.005f});
+
         shader_handle.get().bind();
+        shader_handle.get().set_uniform_mat4(model_matrix_uniform_location,
+                                             transform.get_transform_matrix());
         geometry_handle.get().bind();
 
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
