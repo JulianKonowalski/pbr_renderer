@@ -3,13 +3,18 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/mat4x4.hpp>
-#include <numbers>
 
 using namespace vq::graphics::core;
 
 /*----------------------------------------------------------------------------*/
 
-static constexpr float pi2 = 2.0f * std::numbers::pi_v<float>;
+/**
+ * I know that C++ 20 standard defines the value of PI, but for some reason
+ * sometimes the compiler thinks I'm not using C++ 20 and M_PI from cmath also
+ * doesn't compile under all conditions. It's one constant, so I just define it
+ * here, inline
+ */
+static constexpr float pi2 = 2.0f * 3.14159265358979323846;
 
 /*----------------------------------------------------------------------------*/
 
