@@ -80,8 +80,8 @@ unsigned int Shader::get_uniform_location(const std::string& uniform_id) {
 /*----------------------------------------------------------------------------*/
 
 void Shader::set_uniform_mat4(const unsigned int uniform_location,
-                              const std::array<float, 16>& data) {
-    glUniformMatrix4fv(uniform_location, 1, GL_FALSE, data.data());
+                              const glm::mat4& data) {
+    glUniformMatrix4fv(uniform_location, 1, GL_FALSE, &data[0][0]);
 }
 
 /*----------------------------------------------------------------------------*/
