@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <graphics/core/Geometry.hpp>
 #include <graphics/core/Shader.hpp>
+#include <graphics/transform/ProjectionTransform.hpp>
 #include <graphics/transform/RotateTransform.hpp>
 #include <graphics/transform/ScaleTransform.hpp>
 #include <graphics/transform/TranslateTransform.hpp>
@@ -72,14 +73,20 @@ int main(void) {
 
     geometry_handle.get()
         .set_attribute<vq::graphics::core::Geometry::Attribute::POSITION>(
-            {-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0});
+            {-0.5, -0.5, 0.0, //
+             0.5, -0.5, 0.0,  //
+             0.0, 0.5, 0.0});
     geometry_handle.get()
         .set_attribute<vq::graphics::core::Geometry::Attribute::NORMAL>(
-            {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0});
+            {0.0, 0.0, 1.0, //
+             0.0, 0.0, 1.0, //
+             0.0, 0.0, 1.0});
     geometry_handle.get()
         .set_attribute<
             vq::graphics::core::Geometry::Attribute::TEXTURE_COORDINATE>(
-            {0.0, 0.0, 1.0, 0.0, 0.5, 1.0});
+            {0.0, 0.0, //
+             1.0, 0.0, //
+             0.5, 1.0});
 
     geometry_handle.get().set_indices({0, 1, 2});
 
@@ -90,6 +97,13 @@ int main(void) {
         shader_handle.get().get_uniform_location("u_model_matrix");
 
     vq::graphics::transform::RotateTransform rotate_transform;
+    vq::graphics::transform::TranslateTransform translate_transform;
+    vq::graphics::transform::PerspectiveProjection projection_transform(
+        40.0f, 100.0f, 0.01f,
+        window.get_specification().width /
+            static_cast<float>(window.get_specification().height));
+
+    translate_transform.translate({0.0f, 0.0f, 10.0f});
 
     while (!window.should_close()) {
         window.update();
@@ -103,7 +117,12 @@ int main(void) {
         shader_handle.get().bind();
         shader_handle.get().set_uniform_mat4(
             model_matrix_uniform_location,
-            rotate_transform.get_transform_matrix());
+            projection_transform.get_transform_matrix() *
+                glm::lookAt(glm::vec3({0.0f, 0.0f, 0.0f}),
+                            glm::vec3({0.0f, 0.0f, 1.0f}),
+                            glm::vec3({0.0f, 1.0f, 0.0f})) *
+                translate_transform.get_transform_matrix() *
+                rotate_transform.get_transform_matrix());
         geometry_handle.get().bind();
 
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);

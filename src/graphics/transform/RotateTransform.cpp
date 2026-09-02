@@ -96,7 +96,7 @@ void RotateTransform::rotate_euler_degrees(const glm::vec3& rotation) {
 
 /*----------------------------------------------------------------------------*/
 
-void RotateTransform::rotate_on_axis_radians(float angle,
+void RotateTransform::rotate_on_axis_radians(const float angle,
                                              const glm::vec3& axis) {
     glm::quat quaternion_rotation = glm::angleAxis(std::fmod(angle, pi2), axis);
     m_rotation                    = m_rotation * quaternion_rotation;
@@ -105,7 +105,7 @@ void RotateTransform::rotate_on_axis_radians(float angle,
 
 /*----------------------------------------------------------------------------*/
 
-void RotateTransform::rotate_on_axis_degrees(float angle,
+void RotateTransform::rotate_on_axis_degrees(const float angle,
                                              const glm::vec3& axis) {
     glm::quat quaternion_rotation =
         glm::angleAxis(glm::radians(std::fmod(angle, 360.0f)), axis);

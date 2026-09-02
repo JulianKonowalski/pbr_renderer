@@ -27,8 +27,8 @@ class RotateTransform final : public TransformBase {
     void rotate_quaternion(const glm::quat& rotation);
     void rotate_euler_radians(const glm::vec3& rotation);
     void rotate_euler_degrees(const glm::vec3& rotation);
-    void rotate_on_axis_radians(float angle, const glm::vec3& axis);
-    void rotate_on_axis_degrees(float angle, const glm::vec3& axis);
+    void rotate_on_axis_radians(const float angle, const glm::vec3& axis);
+    void rotate_on_axis_degrees(const float angle, const glm::vec3& axis);
 
     void set_rotation_quaternion(const glm::quat& rotation);
     void set_rotation_euler_radians(const glm::vec3& rotation);
