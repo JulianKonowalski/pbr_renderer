@@ -1,3 +1,5 @@
+#pragma once
+
 #include "graphics/transform/TransformBase.hpp"
 
 namespace vq::graphics::transform {
