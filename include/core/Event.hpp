@@ -164,9 +164,9 @@ EventHandlerBase<EventType>::EventHandlerBase(const ThisType& other) {
 template <typename EventType>
 EventHandlerBase<EventType>&
 EventHandlerBase<EventType>::operator=(ThisType&& other) {
-    for (const auto& event_emitter : other.m_event_emitters) {
-        event_emitter.detach_event_handler(other);
-        event_emitter.attach_event_handler(*this);
+    for (auto* event_emitter : other.m_event_emitters) {
+        event_emitter->detach_event_handler(other);
+        event_emitter->attach_event_handler(*this);
     }
     return *this;
 }
@@ -174,8 +174,8 @@ EventHandlerBase<EventType>::operator=(ThisType&& other) {
 template <typename EventType>
 EventHandlerBase<EventType>&
 EventHandlerBase<EventType>::operator=(const ThisType& other) {
-    for (const auto& event_emitter : other.m_event_emitters) {
-        event_emitter.attach_event_handler(*this);
+    for (auto* event_emitter : other.m_event_emitters) {
+        event_emitter->attach_event_handler(*this);
     }
     return *this;
 }
@@ -347,12 +347,14 @@ template <typename... EventTypes>
 EventHandler<EventTypes...>&
 EventHandler<EventTypes...>::operator=(ThisType&& other) {
     (EventHandlerBase<EventTypes>::operator=(std::move(other)), ...);
+    return *this;
 }
 
 template <typename... EventTypes>
 EventHandler<EventTypes...>&
 EventHandler<EventTypes...>::operator=(const ThisType& other) {
     (EventHandlerBase<EventTypes>::operator=(other), ...);
+    return *this;
 }
 
 /*----------------------------------------------------------------------------*/
