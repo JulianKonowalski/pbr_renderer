@@ -20,8 +20,10 @@ class Entity {
 
     template <typename ComponentType, typename... Args>
     bool add_component(Args&&... args);
+
     template <typename ComponentType>
     std::weak_ptr<ComponentType> get_component();
+
     template <typename ComponentType>
     bool remove_component();
 
