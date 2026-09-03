@@ -39,8 +39,13 @@ struct MouseButtonEvent : public vq::core::EventBase {
 };
 
 struct MouseMoveEvent : public vq::core::EventBase {
-    explicit MouseMoveEvent(Window& window) : window(window) {}
+    explicit MouseMoveEvent(Window& window, const double x_position_delta,
+                            const double y_position_delta)
+        : window(window), x_position_delta(x_position_delta),
+          y_position_delta(y_position_delta) {}
     Window& window;
+    const double x_position_delta;
+    const double y_position_delta;
 };
 
 struct MouseDragEvent : public vq::core::EventBase {
@@ -120,9 +125,14 @@ class Window final
     friend void pbr_core_window_on_cursor_pos_change(Window& window,
                                                      double mouse_x_position,
                                                      double mouse_y_position) {
+        const double x_position_delta =
+            window.m_mouse_state.mouse_x_position - mouse_x_position;
+        const double y_position_delta =
+            window.m_mouse_state.mouse_y_position - mouse_y_position;
         window.m_mouse_state.mouse_x_position = mouse_x_position;
         window.m_mouse_state.mouse_y_position = mouse_y_position;
-        window.emit_event<MouseMoveEvent>(window);
+        window.emit_event<MouseMoveEvent>(window, x_position_delta,
+                                          y_position_delta);
     }
 
     friend void pbr_core_window_on_framebuffer_size_change(Window& window,

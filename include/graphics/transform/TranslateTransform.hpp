@@ -22,6 +22,7 @@ class TranslateTransform final : public TransformBase {
     inline const glm::vec3& get_translation() const;
 
     void translate(const glm::vec3& translation);
+    void translate_on_axis(const float translation, const glm::vec3& axis);
     void set_translation(const glm::vec3& translation);
 
   protected:

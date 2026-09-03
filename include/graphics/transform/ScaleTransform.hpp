@@ -22,6 +22,7 @@ class ScaleTransform final : public TransformBase {
     inline const glm::vec3& get_scale() const;
 
     void scale(const glm::vec3& scale);
+    void scale_on_axis(const float scale, const glm::vec3& axis);
     void set_scale(const glm::vec3& scale);
 
   protected:

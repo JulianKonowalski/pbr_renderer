@@ -8,9 +8,9 @@ namespace vq::graphics::transform {
 
 class ProjectionBase : public TransformBase {
   public:
-    ProjectionBase(const float far_clip_distance,
-                   const float near_clip_distance,
-                   const float viewport_aspect_ratio);
+    explicit ProjectionBase(const float far_clip_distance,
+                            const float near_clip_distance,
+                            const float viewport_aspect_ratio);
     ~ProjectionBase() = default;
 
     ProjectionBase(ProjectionBase&& other);

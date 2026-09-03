@@ -7,28 +7,43 @@
 #include <graphics/transform/RotateTransform.hpp>
 #include <graphics/transform/ScaleTransform.hpp>
 #include <graphics/transform/TranslateTransform.hpp>
+#include <graphics/transform/ViewTransform.hpp>
 #include <io/Window.hpp>
 
 /*----------------------------------------------------------------------------*/
 
 static const std::string s_base_resource_path = RESOURCE_PATH;
 
+static vq::graphics::transform::RotateTransform view_rotation;
+static vq::graphics::transform::TranslateTransform view_translation;
+static vq::graphics::transform::ViewTransform view_transform(view_rotation,
+                                                             view_translation);
+
 /*----------------------------------------------------------------------------*/
 
-class WindowCloseHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
+class WindowKeyHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
   public:
     void handle(vq::io::KeyEvent& event) noexcept override {
         if (event.key == 256) { // GLFW KEY ESC
             event.window.close();
             event.set_handled();
-        }
-    }
-};
-
-class ShaderReloadHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
-  public:
-    void handle(vq::io::KeyEvent& event) noexcept override {
-        if (event.key == 82) { // GLFW KEY R
+        } else if (event.key == 87) { // GLFW KEY W
+            view_translation.translate_on_axis(
+                0.1f, view_transform.get_front_vector());
+            event.set_handled();
+        } else if (event.key == 65) { // GLFW KEY A
+            view_translation.translate_on_axis(
+                0.1f, view_transform.get_right_vector());
+            event.set_handled();
+        } else if (event.key == 83) { // GLFW KEY S
+            view_translation.translate_on_axis(
+                -0.1f, view_transform.get_front_vector());
+            event.set_handled();
+        } else if (event.key == 68) { // GLFW KEY D
+            view_translation.translate_on_axis(
+                -0.1f, view_transform.get_right_vector());
+            event.set_handled();
+        } else if (event.key == 82) { // GLFW KEY R
             auto& resource_manager = vq::core::ResourceManager::get_instance();
             auto shader_handle =
                 resource_manager.get_resource<vq::graphics::core::Shader>(
@@ -41,16 +56,29 @@ class ShaderReloadHandler : public vq::core::EventHandler<vq::io::KeyEvent> {
     }
 };
 
+class WindowMouseHandler
+    : public vq::core::EventHandler<vq::io::MouseMoveEvent> {
+  public:
+    void handle(vq::io::MouseMoveEvent& event) noexcept override {
+        view_rotation.rotate_on_axis_degrees(0.01f * event.y_position_delta,
+                                             view_transform.get_right_vector());
+        view_rotation.rotate_on_axis_degrees(
+            0.01f * event.x_position_delta,
+            vq::graphics::transform::TransformBase::s_world_up);
+        event.set_handled();
+    }
+};
+
 /*----------------------------------------------------------------------------*/
 
 int main(void) {
     vq::io::Window window(vq::io::Window::WindowSpecification("VQ Example"));
-    WindowCloseHandler close_handler;
-    ShaderReloadHandler shader_reload_handler;
+    WindowKeyHandler key_handler;
+    WindowMouseHandler mouse_handler;
 
     window.make_current();
-    window.attach_event_handler(close_handler);
-    window.attach_event_handler(shader_reload_handler);
+    window.attach_event_handler(key_handler);
+    window.attach_event_handler(mouse_handler);
 
     auto& resource_manager = vq::core::ResourceManager::get_instance();
     resource_manager.load_resource<vq::graphics::core::Geometry>(
@@ -118,9 +146,7 @@ int main(void) {
         shader_handle.get().set_uniform_mat4(
             model_matrix_uniform_location,
             projection_transform.get_transform_matrix() *
-                glm::lookAt(glm::vec3({0.0f, 0.0f, 0.0f}),
-                            glm::vec3({0.0f, 0.0f, 1.0f}),
-                            glm::vec3({0.0f, 1.0f, 0.0f})) *
+                view_transform.get_transform_matrix() *
                 translate_transform.get_transform_matrix() *
                 rotate_transform.get_transform_matrix());
         geometry_handle.get().bind();

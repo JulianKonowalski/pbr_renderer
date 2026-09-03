@@ -39,13 +39,6 @@ TranslateTransform::operator=(const TranslateTransform& other) {
 
 /*----------------------------------------------------------------------------*/
 
-void TranslateTransform::on_reset() {
-    m_translation = glm::vec3(0.0f, 0.0f, 0.0f);
-    this->set_dirty();
-}
-
-/*----------------------------------------------------------------------------*/
-
 void TranslateTransform::translate(const glm::vec3& translation) {
     for (int i = 0; i < 3; ++i) {
         m_translation[i] += translation[i];
@@ -55,9 +48,23 @@ void TranslateTransform::translate(const glm::vec3& translation) {
 
 /*----------------------------------------------------------------------------*/
 
+void TranslateTransform::translate_on_axis(const float translation,
+                                           const glm::vec3& axis) {
+    m_translation += axis * translation;
+    this->set_dirty();
+}
+
+/*----------------------------------------------------------------------------*/
+
 void TranslateTransform::set_translation(const glm::vec3& translation) {
     memcpy(&m_translation[0], &translation[0], sizeof(float) * 3);
     this->set_dirty();
+}
+
+/*----------------------------------------------------------------------------*/
+
+void TranslateTransform::on_reset() {
+    m_translation = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
 /*----------------------------------------------------------------------------*/
