@@ -20,8 +20,8 @@ class Resource {
     Resource(Resource&& other);
     Resource& operator=(Resource&& other);
 
-    Resource(const Resource& other)            = delete;
-    Resource& operator=(const Resource& other) = delete;
+    Resource(const Resource&)            = delete;
+    Resource& operator=(const Resource&) = delete;
 
     template <typename ChildType>
     static inline size_t get_type_id();

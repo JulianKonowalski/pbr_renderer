@@ -13,19 +13,19 @@ class TransformBase;
 
 /*----------------------------------------------------------------------------*/
 
-struct TransformChangeEvent : public vq::core::EventBase {
+struct TransformChangeEvent final : public vq::core::EventBase {
     explicit TransformChangeEvent(TransformBase& transform)
         : transform(transform) {}
     TransformBase& transform;
 };
 
-struct TransformResetEvent : public vq::core::EventBase {
+struct TransformResetEvent final : public vq::core::EventBase {
     explicit TransformResetEvent(TransformBase& transform)
         : transform(transform) {}
     TransformBase& transform;
 };
 
-struct TransformUpdateEvent : public vq::core::EventBase {
+struct TransformUpdateEvent final : public vq::core::EventBase {
     explicit TransformUpdateEvent(TransformBase& transform)
         : transform(transform) {}
     TransformBase& transform;

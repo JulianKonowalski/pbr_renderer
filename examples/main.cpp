@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <graphics/core/Geometry.hpp>
 #include <graphics/core/Shader.hpp>
+#include <graphics/texture/Texture2D.hpp>
 #include <graphics/transform/ProjectionTransform.hpp>
 #include <graphics/transform/RotateTransform.hpp>
 #include <graphics/transform/ScaleTransform.hpp>
@@ -78,7 +79,7 @@ int main(void) {
 
     window.make_current();
     window.attach_event_handler(key_handler);
-    window.attach_event_handler(mouse_handler);
+    // window.attach_event_handler(mouse_handler);
 
     auto& resource_manager = vq::core::ResourceManager::get_instance();
     resource_manager.load_resource<vq::graphics::core::Geometry>(
@@ -91,6 +92,8 @@ int main(void) {
             {s_base_resource_path + "shaders/passthrough.frag.glsl",
              vq::graphics::core::Shader::ShaderSourceType::FRAGMENT},
         }));
+    resource_manager.load_resource<vq::graphics::texture::Texture2D>(
+        "test_texture", s_base_resource_path + "textures/uv_test.png");
 
     auto geometry_handle =
         resource_manager.get_resource<vq::graphics::core::Geometry>(
@@ -98,6 +101,9 @@ int main(void) {
     auto shader_handle =
         resource_manager.get_resource<vq::graphics::core::Shader>(
             "test_shader");
+    auto texture_handle =
+        resource_manager.get_resource<vq::graphics::texture::Texture2D>(
+            "test_texture");
 
     geometry_handle.get()
         .set_attribute<vq::graphics::core::Geometry::Attribute::POSITION>(
@@ -117,9 +123,6 @@ int main(void) {
              0.5, 1.0});
 
     geometry_handle.get().set_indices({0, 1, 2});
-
-    unsigned int vao;
-    glCreateVertexArrays(1, &vao);
 
     unsigned int model_matrix_uniform_location =
         shader_handle.get().get_uniform_location("u_model_matrix");
@@ -149,11 +152,15 @@ int main(void) {
                 view_transform.get_transform_matrix() *
                 translate_transform.get_transform_matrix() *
                 rotate_transform.get_transform_matrix());
+
+        glActiveTexture(GL_TEXTURE0);
+        texture_handle.get().bind();
         geometry_handle.get().bind();
 
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
         vq::graphics::core::Geometry::unbind_all();
+        vq::graphics::texture::Texture2D::unbind_all();
         vq::graphics::core::Shader::unbind_all();
     }
 }
